@@ -22,7 +22,7 @@ const makeRoomDynamicState = function (
   e: RespondRawInfo | RequestRawInfo
 ): RoomDynamicState {
   return {
-    wordLib: e.word_lib ?? "defaultWordLib",
+    wordLib: e.word_lib ?? "abc",
     round: e.round ?? 3,
     drawTime: e.draw_time ?? 60,
     userInRoom: e.user_in_room ?? 0,

@@ -45,6 +45,13 @@ const usePlayerStateStore = defineStore({
         user.ready = user_info.ready;
       }
     },
+    isAllPlayerReady():boolean{
+      if(this.playerInRoom.roomDynamicState.users.length===0){
+        return false;
+      }else{
+        return this.playerInRoom.roomDynamicState.users.reduce((pre:boolean,cur)=>pre&&cur.ready,true)
+      }
+    }
   },
 });
 

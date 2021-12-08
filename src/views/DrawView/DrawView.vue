@@ -126,9 +126,10 @@ export default defineComponent({
       websocketClient.onopen = () => {
         websocketClient.send("asoulFanToken=123456");
       };
+      
       websocketClient.onmessage = (evt) => {
         let datas = JSON.parse(evt.data);
-        console.log(datas);
+        console.log(datas)
         switch (datas.api) {
           case "connect":
             intervalLoopId = setInterval(() => {
@@ -225,6 +226,15 @@ export default defineComponent({
               let roomInfo = datas.data.user_info as PlayerInfo;
               if (roomInfo) {
                 playerStateStore.onInRoomPlayerStateChanged(roomInfo);
+                if(playerStateStore.isAllPlayerReady()){
+                  websocketClient.send(JSON.stringify({
+                      "api_type": "startgame",
+                      "param": {
+                          "nil": "nil"
+                      }
+                    }
+                  ))
+                }
               }
             })();
             break;

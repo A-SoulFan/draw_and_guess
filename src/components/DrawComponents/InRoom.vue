@@ -228,9 +228,11 @@ export default defineComponent({
 }
 .roomDrawBox {
   position: absolute;
-  left: 0;
-  right: 0;
-  top: 0;
-  bottom: 0;
+  left: 30%;
+  right: 2%;
+  top: 5%;
+  bottom: 7%;
+  border-radius:8px;
+  border:3.2px solid black;
 }
 </style>
