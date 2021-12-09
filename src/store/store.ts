@@ -21,10 +21,10 @@ const usePlayerStateStore = defineStore({
     getState: (state) => state.playerState,
   },
   actions: {
-    updateAllState(newState: PlayerInfo) {
+    updatePlayerInfo(newState: PlayerInfo) {
       Object.keys(this.playerInfo).forEach((v: string) => {
-        if ((newState as PlayerInfo)[v] !== undefined) {
-          this.playerInfo[v] = newState[v];
+        if ((newState as PlayerInfo)[v]) {
+          this.playerInfo[v] = ''+newState[v];
         }
       });
     },
@@ -45,12 +45,18 @@ const usePlayerStateStore = defineStore({
         user.ready = user_info.ready;
       }
     },
-    isAllPlayerReady():boolean{
-      if(this.playerInRoom.roomDynamicState.users.length===0){
+    isAllPlayerReady(): boolean {
+      if (this.playerInRoom.roomDynamicState.users.length === 0) {
         return false;
-      }else{
-        return this.playerInRoom.roomDynamicState.users.reduce((pre:boolean,cur)=>pre&&cur.ready,true)
+      } else {
+        return this.playerInRoom.roomDynamicState.users.reduce(
+          (pre: boolean, cur) => pre && cur.ready,
+          true
+        );
       }
+    },
+    isRoomOwner():boolean{
+      return this.playerInRoom.roomBaseInfo.onwerId===this.playerInfo.id
     }
   },
 });

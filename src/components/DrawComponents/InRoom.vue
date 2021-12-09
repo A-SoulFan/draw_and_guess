@@ -232,7 +232,7 @@ export default defineComponent({
   right: 2%;
   top: 5%;
   bottom: 7%;
-  border-radius:8px;
-  border:3.2px solid black;
+  border-radius: 8px;
+  border: 3.2px solid black;
 }
 </style>

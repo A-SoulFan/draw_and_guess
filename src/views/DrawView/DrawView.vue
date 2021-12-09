@@ -126,16 +126,31 @@ export default defineComponent({
       websocketClient.onopen = () => {
         websocketClient.send("asoulFanToken=123456");
       };
-      
+
       websocketClient.onmessage = (evt) => {
         let datas = JSON.parse(evt.data);
-        console.log(datas)
+        console.log(datas);
         switch (datas.api) {
           case "connect":
             intervalLoopId = setInterval(() => {
               websocketClient.send('{"api_type": "getallrooms"}');
-            }, 5000);
+            }, 10000);
             playerStateStore.changePlayerState(PlayerState.HANGING);
+            (function () {
+              let rawInfo = datas.data;
+              if (rawInfo.user_info) {
+                playerStateStore.updatePlayerInfo(
+                  rawInfo.user_info as PlayerInfo
+                );
+              }
+              if (rawInfo.rooms_info) {
+                roomInfoStore.updateAllState(
+                  rawInfo.rooms_info.map((v: RespondRawInfo) => {
+                    return makeRoomDetailInfo(v);
+                  })
+                );
+              }
+            })();
             break;
           case "getAllRooms" || "roomUpdate":
             (function () {
@@ -156,10 +171,13 @@ export default defineComponent({
             (function () {
               let roomInfo = datas.data;
               if (roomInfo) {
-                playerStateStore.changePlayerState(PlayerState.INROOM_WAITING);
+                roomInfo.users=[playerStateStore.playerInfo]
+                roomInfo.owner_id=playerStateStore.playerInfo.id
                 playerStateStore.onPlayerEnterRoom(
                   makeRoomDetailInfo(roomInfo)
                 );
+                playerStateStore.changePlayerState(PlayerState.INROOM_WAITING);
+                console.log(playerStateStore.playerInRoom)
               }
             })();
             break;
@@ -226,14 +244,23 @@ export default defineComponent({
               let roomInfo = datas.data.user_info as PlayerInfo;
               if (roomInfo) {
                 playerStateStore.onInRoomPlayerStateChanged(roomInfo);
-                if(playerStateStore.isAllPlayerReady()){
-                  websocketClient.send(JSON.stringify({
-                      "api_type": "startgame",
+                if (playerStateStore.isAllPlayerReady()&&playerStateStore.isRoomOwner()&&playerStateStore.playerInRoom.roomDynamicState.users.length>1) {
+                  websocketClient.send(
+                    JSON.stringify({
+                      "api_type": "choosewordlib",
                       "param": {
-                          "nil": "nil"
+                          "lib_name": "abc"
                       }
-                    }
-                  ))
+                    })
+                  );
+                  websocketClient.send(
+                    JSON.stringify({
+                      api_type: "startgame",
+                      param: {
+                        nil: "nil",
+                      },
+                    })
+                  );
                 }
               }
             })();
