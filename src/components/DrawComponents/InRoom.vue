@@ -6,6 +6,7 @@
         playerStateStore.playerState === PlayerState.PLAYING_DRAWING
       "
       class="roomDrawBox"
+      @draw-one-path="onDrawOnePath"
     >
     </draw-box>
 
@@ -13,8 +14,29 @@
       <div class="wordLibName">
         嘉然，我真的好喜欢你啊,为了你我要听猫中毒(100)
       </div>
-      <div class="chatBox">优化中······敬请期待</div>
-      <div class="chatBoxInput"></div>
+      <div class="chatBox" id="chatBox">
+        <ul>
+          <li
+            v-for="(chatItem, index) in playerStateStore.playerInRoomChatArray"
+            :key="`${chatItem.playerName + index}`"
+          >
+            {{ chatItem.playerName }}:{{ chatItem.text }}
+          </li>
+        </ul>
+      </div>
+      <div class="chatBoxInput">
+        <input type="text" v-model="setGuessInput" placeholder="请输入答案" />
+        <img
+          src="../../assets/Draw/submit.png"
+          class="submitBtn"
+          v-if="
+            true ||
+            (playerStateStore.playerState === PlayerState.PLAYING_ANSWERING &&
+              !btnSubmitGuessDisabled)
+          "
+          @click="setGuess"
+        />
+      </div>
     </div>
     <div class="waitingRoom">
       <ul class="playerList">
@@ -44,25 +66,37 @@
     <div class="scoreBoard">4</div>
 
     <img class="close" @click="onExitRoom" src="../../assets/Draw/exit.png" />
-    <img class="leftBackground" src="../../assets/Draw/backgroundASF.png" />
-    <img class="rightBackground" src="../../assets/Draw/backgroundASF.png" />
   </div>
 </template>
 
 <script lang="ts">
-import { defineComponent, ref } from "vue";
+import { defineComponent, ref, onMounted, watch } from "vue";
 import { usePlayerStateStore } from "../../store/store";
 import { PlayerState } from "../../types/types";
 import drawBox from "./DrawBox.vue";
+import { storeToRefs } from "pinia";
 
 export default defineComponent({
   name: "inRoom",
-  emits: ["onReadyChange", "onExitRoom"],
+  emits: ["onReadyChange", "onExitRoom", "onPathDrawn", "onSubmitGuess"],
   components: {
     drawBox,
   },
   setup(props, context) {
     const playerStateStore = usePlayerStateStore();
+    const { playerInRoomChatArray } = storeToRefs(usePlayerStateStore());
+    onMounted(function () {
+      const chatElement = document.getElementById("chatBox") as any;
+      watch(playerInRoomChatArray, (now) => {
+        chatElement.scrollTop = chatElement.scrollHeight;
+      });
+    });
+    let setGuessInput = ref("");
+    let btnSubmitGuessDisabled = ref(false);
+    const setGuess = function () {
+      context.emit("onSubmitGuess", setGuessInput.value);
+      btnSubmitGuessDisabled.value = true;
+    };
     const changeReadyState = function () {
       if (playerStateStore.playerState === PlayerState.INROOM_READY) {
         playerStateStore.changePlayerState(PlayerState.INROOM_WAITING);
@@ -76,11 +110,18 @@ export default defineComponent({
       context.emit("onExitRoom");
       playerStateStore.changePlayerState(PlayerState.HANGING);
     };
+    const onDrawOnePath = function (e: any) {
+      context.emit("onPathDrawn", e);
+    };
     return {
       playerStateStore,
       PlayerState,
       changeReadyState,
       onExitRoom,
+      onDrawOnePath,
+      setGuessInput,
+      setGuess,
+      btnSubmitGuessDisabled,
     };
   },
 });
@@ -92,20 +133,9 @@ export default defineComponent({
   display: flex;
   justify-content: space-around;
   align-items: center;
-}
-.leftBackground {
-  position: absolute;
-  width: 50%;
-  left: 0;
-  top: -25%;
-  z-index: -99;
-}
-.rightBackground {
-  position: absolute;
-  width: 50%;
-  left: 50%;
-  top: -25%;
-  z-index: -99;
+  background-image: url("../../assets/Draw/backgroundASF.png");
+  background-size: auto 150%;
+  background-position: 0 50%;
 }
 .close {
   position: absolute;
@@ -121,55 +151,78 @@ export default defineComponent({
   width: 25%;
   display: flex;
   flex-direction: column;
-  height: 100vh;
+  height: 95%;
 }
 .wordLibName {
-  font-size: 40px;
+  font-size: 2.4em;
   font-weight: 600;
   color: black;
   margin-top: 17%;
+  flex: 0 0 20%;
 }
 .chatBox {
-  margin-top: 15%;
-  height: 40%;
-  border: 3.2px solid black;
+  height: 60%;
+  border: 3px solid black;
   border-radius: 8px;
-  font-size: 50px;
+  font-size: 1.5rem;
   font-weight: 600;
   color: black;
+  overflow-y: scroll;
+  overflow-y: -moz-scrollbars-none;
+  -ms-overflow-style: none;
 }
 .chatBoxInput {
-  margin-top: 8%;
+  margin-top: 5%;
   border-radius: 8px;
   height: 5%;
-  width: 80%;
-  border: 3.2px solid black;
+  width: 100%;
+  display: flex;
+  align-items: center;
+}
+.chatBoxInput input {
+  height: 100%;
+  border: 3px solid black;
+  border-radius: 8px;
+  font-size: 1.5rem;
+  background-color: transparent;
+  width: 90%;
+}
+.chatBox::-webkit-scrollbar {
+  width: 0;
+}
+.submitBtn {
+  width: 10%;
+  margin-left: 5px;
+}
+.submitBtn:hover {
+  cursor: pointer;
 }
 .waitingRoom {
-  border: 3.2px solid black;
+  border: 3px solid black;
   border-radius: 8px;
   height: 85%;
   width: 30%;
-  flex: 1 1 0.3;
+  flex: 0 0 50%;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
 }
 .scoreBoard {
-  border: 3.2px solid black;
+  border: 3px solid black;
   border-radius: 8px;
   height: 85%;
   width: 30%;
-  flex: 1 1 0.3;
+  flex: 0 0 20%;
 }
 .headPicture {
-  border: 3.2px solid black;
+  border: 3px solid black;
   border-radius: 80px;
   width: 15%;
 }
 .playerList {
+  margin-left: 10%;
   list-style: none;
-  margin-top: 70px;
+  margin-top: 8%;
   flex: 0 0 75%;
   overflow-y: scroll;
   overflow-y: -moz-scrollbars-none;
@@ -187,17 +240,17 @@ export default defineComponent({
 }
 
 .playerEle img {
-  width: 65px;
+  width: 4rem;
 }
 .playerName {
   width: 60%;
   margin-left: 10px;
-  font-size: 28px;
+  font-size: 2rem;
   font-weight: 600;
   color: black;
 }
 .playerState {
-  font-size: 20px;
+  font-size: 2rem;
 }
 .playerReady {
   font-weight: 600;
@@ -205,17 +258,18 @@ export default defineComponent({
 
 .playerWaiting {
   color: black;
-  opcaity: 0.7;
+  opacity: 0.7;
 }
 
 .readyButton {
-  min-height: 220px;
+  margin-bottom: 20px;
+  align-self: center;
 }
 .readyButton button {
-  font-size: 20px;
-  width: 50%;
-  height: 20%;
-  border: 3.2px solid black;
+  font-size: 1.5rem;
+  width: 14rem;
+  height: 3rem;
+  border: 3px solid black;
   border-radius: 8px;
 }
 .readyButton button:hover {
@@ -228,11 +282,11 @@ export default defineComponent({
 }
 .roomDrawBox {
   position: absolute;
-  left: 30%;
-  right: 2%;
-  top: 5%;
-  bottom: 7%;
+  left: 26%;
+  right: 0.5%;
+  top: 6%;
+  bottom: 2%;
   border-radius: 8px;
-  border: 3.2px solid black;
+  border: 3px solid black;
 }
 </style>

@@ -98,10 +98,11 @@ export default defineComponent({
   flex-direction: column;
   position: relative;
   justify-content: space-between;
+  overflow: hidden;
 }
 .roomList {
   flex: 1 1 50%;
-  border: 3.2px solid black;
+  border: 3px solid black;
   border-radius: 8px;
   width: 74%;
   margin-left: 12.5%;
@@ -112,7 +113,9 @@ export default defineComponent({
 }
 .roomBtn {
   margin-top: 5%;
-  flex: 1 1 10%;
+  flex: 0 0 20%;
+  display: flex;
+  justify-content: center;
 }
 .roomListBox {
   width: 75%;
@@ -122,7 +125,7 @@ export default defineComponent({
   height: 5%;
   min-height: 30px;
   margin-left: 12.5%;
-  border: 3.2px solid black;
+  border: 3px solid black;
   border-radius: 8px;
   position: relative;
 }
@@ -134,6 +137,7 @@ export default defineComponent({
   background-color: transparent;
   font-size: 20px;
   outline: none;
+  border: 0;
 }
 .searchIcon {
   width: 6%;
@@ -147,7 +151,7 @@ export default defineComponent({
   width: 42%;
   height: 25%;
   font-size: 20px;
-  border: 3.2px solid black;
+  border: 3px solid black;
   min-height: 30px;
   border-radius: 8px;
 }
@@ -164,7 +168,7 @@ export default defineComponent({
   margin-left: 20px;
   height: 25%;
   min-height: 30px;
-  border: 3.2px solid black;
+  border: 3px solid black;
   border-radius: 8px;
 }
 .roomList ul {
@@ -188,13 +192,6 @@ export default defineComponent({
 .roomList li:hover {
   cursor: pointer;
   background-color: rgba(0, 0, 0, 0.2);
-}
-.createRoomBox {
-  position: absolute;
-  left: 12.5%;
-  right: 12.5%;
-  top: 0;
-  bottom: 25%;
 }
 .btnActive {
   background-color: rgb(92, 92, 92, 0.7);

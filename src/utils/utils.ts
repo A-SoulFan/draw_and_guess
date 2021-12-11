@@ -12,7 +12,7 @@ const makeRoomBaseInfo = function (
   e: RespondRawInfo | RequestRawInfo
 ): RoomBaseInfo {
   return {
-    roomName: e.room_name ?? "一个魂儿们，期待你们的加入~",
+    roomName: e.room_name ?? "一个魂儿们，欢迎来玩呀~",
     roomId: e.room_id ?? "-1",
     maxUsers: e.max_users ?? "20",
     onwerId: e.owner_id ?? "-1",

@@ -63,12 +63,12 @@ export default defineComponent({
   position: relative;
   display: flex;
   flex-direction: column;
-  border: 3.2px solid white;
+  border: 3px solid white;
   justify-content: space-between;
   border-radius: 8px;
   width: 80%;
   color: white;
-  font-size: 24px;
+  font-size: 1.5rem;
   font-weight: 600;
   background-color: rgb(8, 8, 8);
 }
@@ -76,22 +76,22 @@ export default defineComponent({
   text-align: left;
   margin-top: 10%;
   margin-left: 5%;
-  flex: 1 1 0.1;
+  flex: 1 1 10%;
 }
 .musicVolume {
   text-align: left;
   margin-left: 5%;
-  flex: 1 1 0.1;
+  flex: 1 1 10%;
 }
 .effectVolume {
   text-align: left;
   margin-left: 5%;
-  flex: 1 1 0.1;
+  flex: 1 1 10%;
 }
 .talkingBox {
   text-align: left;
   margin-left: 5%;
-  flex: 1 1 0.1;
+  flex: 1 1 10%;
 }
 .patternChoosing {
   height: 45%;
@@ -111,11 +111,11 @@ export default defineComponent({
   margin-bottom: 1%;
 }
 .patternMouse {
-  border: 3.2px solid white;
+  border: 3px solid white;
   border-radius: 8px;
   text-align: left;
   width: 40%;
-  font-size: 20px;
+  font-size: 1.2rem;
   height: 100%;
 }
 .patternMouse .desc {
@@ -136,10 +136,10 @@ export default defineComponent({
   width: 5%;
 }
 .patternDigitBoard {
-  border: 3.2px solid white;
+  border: 3px solid white;
   border-radius: 8px;
   text-align: left;
-  font-size: 20px;
+  font-size: 1.2rem;
   width: 40%;
   height: 100%;
 }

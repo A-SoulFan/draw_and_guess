@@ -1,4 +1,3 @@
-import { ref } from "vue";
 enum PlayerState {
   PENDING,
   CONNECTED,
@@ -57,6 +56,10 @@ interface RespondRawInfo {
   users: Array<PlayerInfo>;
   is_playing: boolean;
 }
+interface ChatInfo {
+  playerName: string;
+  text: string;
+}
 type RequestRawInfo = RespondRawInfo;
 export {
   PlayerInfo,
@@ -68,4 +71,5 @@ export {
   RespondRawInfo,
   RequestRawInfo,
   PlayerRawInfo,
+  ChatInfo,
 };

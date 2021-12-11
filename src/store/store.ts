@@ -4,6 +4,7 @@ import {
   PlayerState,
   RequestRawInfo,
   RoomDetailInfo,
+  ChatInfo,
 } from "@/types/types";
 import { makeRoomDetailInfo } from "@/utils/utils";
 const usePlayerStateStore = defineStore({
@@ -16,6 +17,8 @@ const usePlayerStateStore = defineStore({
     },
     playerState: PlayerState.PENDING,
     playerInRoom: makeRoomDetailInfo({} as RequestRawInfo),
+    playerInRoomChatArray: [] as Array<ChatInfo>,
+    pathInfo: [] as any,
   }),
   getters: {
     getState: (state) => state.playerState,
@@ -24,7 +27,7 @@ const usePlayerStateStore = defineStore({
     updatePlayerInfo(newState: PlayerInfo) {
       Object.keys(this.playerInfo).forEach((v: string) => {
         if ((newState as PlayerInfo)[v]) {
-          this.playerInfo[v] = ''+newState[v];
+          this.playerInfo[v] = "" + newState[v];
         }
       });
     },
@@ -32,6 +35,7 @@ const usePlayerStateStore = defineStore({
       this.playerState = newState;
       if (this.playerState === PlayerState.HANGING) {
         this.playerInRoom = <RoomDetailInfo>{};
+        this.playerInRoomChatArray = <Array<ChatInfo>>[];
       }
     },
     onPlayerEnterRoom(room: RoomDetailInfo) {
@@ -55,9 +59,22 @@ const usePlayerStateStore = defineStore({
         );
       }
     },
-    isRoomOwner():boolean{
-      return this.playerInRoom.roomBaseInfo.onwerId===this.playerInfo.id
-    }
+    isRoomOwner(): boolean {
+      return this.playerInRoom.roomBaseInfo.onwerId === this.playerInfo.id;
+    },
+    appendChat(e: ChatInfo | Array<ChatInfo>) {
+      if (Array.isArray(e)) {
+        this.playerInRoomChatArray.push(...e);
+      } else {
+        this.playerInRoomChatArray.push(e);
+      }
+    },
+    changeWordLib(e: string) {
+      this.playerInRoom.roomDynamicState.wordLib = e;
+    },
+    changePath(e: any) {
+      this.pathInfo = e;
+    },
   },
 });
 

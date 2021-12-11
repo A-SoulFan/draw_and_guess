@@ -1,24 +1,42 @@
 <template>
   <div class="createRoomMain">
     <div class="roomName">
-      房间名<input type="text" v-model="roomNameInput" />
+      <img src="../../assets/Draw/username.png" />
+      <input type="text" v-model="roomNameInput" />
     </div>
     <div class="maxUser">
-      最大人数<input type="text" v-model="maxUserInput" />/20
+      <img src="../../assets/Draw/maxuser.png" />
+      <input type="text" v-model="maxUserInput" /> /20
     </div>
-    <div class="drawTime">
-      每轮时间
-      <input type="radio" value="60" v-model="drawTimeInput" />60s
-      <input type="radio" value="90" v-model="drawTimeInput" />90s
-      <input type="radio" value="120" v-model="drawTimeInput" />120s
+    <div class="drawTime rowCenter">
+      <img src="../../assets/Draw/round.png" />
+      <div class="drawTimeElement rowCenter">
+        <input type="radio" value="60" v-model="drawTimeInput" />60s
+      </div>
+      <div class="drawTimeElement rowCenter">
+        <input type="radio" value="90" v-model="drawTimeInput" />90s
+      </div>
+      <div class="drawTimeElement rowCenter">
+        <input type="radio" value="120" v-model="drawTimeInput" />120s
+      </div>
     </div>
-    <div class="round">轮数<input type="text" v-model="roundInput" /></div>
+    <div class="round">
+      <div class="roundElement rowCenter">
+        <input type="radio" value="1" v-model="roundInput" />一轮
+      </div>
+      <div class="roundElement rowCenter">
+        <input type="radio" value="2" v-model="roundInput" />两轮
+      </div>
+      <div class="roundElement rowCenter">
+        <input type="radio" value="3" v-model="roundInput" />三轮
+      </div>
+    </div>
     <div class="roomType">
-      房间类型
-      <div>
+      <img src="../../assets/Draw/privateRoom.png" />
+      <div class="publicRoom">
         <input type="radio" value="0" v-model="roomTypeInput" />开放房间
       </div>
-      <div>
+      <div class="privateRoom">
         <input
           type="radio"
           value="1"
@@ -38,7 +56,7 @@ export default defineComponent({
   name: "createRoom",
   emits: ["changeState", "onCreateBtnClicked"],
   setup(props, context) {
-    let roomNameInput = ref("");
+    let roomNameInput = ref("一个魂儿们，欢迎来玩呀~");
     let maxUserInput = ref(10);
     let roundInput = ref(3);
     let roomTypeInput = ref(0);
@@ -70,36 +88,112 @@ export default defineComponent({
 .createRoomMain {
   display: flex;
   flex-direction: column;
-  border: 3.2px solid black;
+  border: 3px solid black;
   border-radius: 8px;
   background-color: rgb(230, 230, 230);
   z-index: 99;
   justify-content: space-around;
-  font-size: 24px;
+  align-items: flex-start;
+  font-size: 1.5rem;
   font-weight: 600;
+
+  position: absolute;
+  left: 10%;
+  right: 10%;
+  top: 0;
+  bottom: 24%;
+  overflow: hidden;
 }
 .roomName {
-  flex: 1 1 0.1;
+  margin-top: 6%;
+  margin-left: 10%;
+  width: 90%;
+  display: flex;
+  align-items: center;
+}
+.roomName img {
+  width: 10%;
+}
+.roomName input {
+  height: 24px;
+  width: 80%;
+  border: 3px solid black;
+  border-radius: 8px;
+  font-size: 1.4rem;
+  background-color: transparent;
 }
 .round {
-  flex: 1 1 0.1;
+  margin-left: 15%;
+  width: 90%;
+  display: flex;
+  align-items: center;
+}
+.roundElement input {
+  width: 1.5rem;
+  height: 1.5rem;
 }
 .maxUser {
-  flex: 1 1 0.1;
+  display: flex;
+  align-items: center;
+  align-self: flex-start;
+  margin-left: 10%;
+  width: 90%;
+}
+.maxUser img {
+  width: 10%;
+}
+.maxUser input {
+  font-size: 1.4rem;
+  height: 24px;
+  width: 30px;
+  border: 3px solid black;
+  border-radius: 8px;
+  background-color: transparent;
 }
 .roomType {
-  flex: 1 1 0.1;
+  margin-left: 10%;
+  width: 90%;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+.roomType img {
+  width: 10%;
+}
+.publicRoom {
+  margin-left: 10%;
+}
+.privateRoom {
+  margin-left: 10%;
 }
 .drawTime {
-  flex: 1 1 0.1;
+  margin-left: 10%;
+  width: 90%;
+}
+.drawTime img {
+  width: 10%;
+}
+.drawTime input {
+  width: 1.5rem;
+  height: 1.5rem;
 }
 .btnCreate {
   z-index: 1;
+  min-height: 25px;
+  height: 7%;
+  width: 40%;
+  align-self: center;
+  border-radius: 8px;
+  border: 3px solid black;
 }
 .btnCreate:hover {
   background-color: rgb(9, 9, 9, 0.3);
 }
 .btnCreate:active {
   background-color: rgb(9, 9, 9, 0.5);
+}
+.rowCenter {
+  display: flex;
+  align-items: center;
 }
 </style>
