@@ -34,7 +34,7 @@ interface RoomDynamicState {
   userInRoom: number;
   users: Array<PlayerInfo>;
   isPlaying: boolean;
-  privacy: boolean
+  privacy: boolean;
 }
 interface RoomDetailInfo {
   roomBaseInfo: RoomBaseInfo;
@@ -49,7 +49,7 @@ interface RespondRawInfo {
   round: number;
   draw_time: number;
   user_in_room: number;
-  privacy:boolean;
+  privacy: boolean;
   users: Array<PlayerInfo>;
   is_playing: boolean;
 }

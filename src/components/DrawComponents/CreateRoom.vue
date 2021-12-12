@@ -70,7 +70,7 @@ export default defineComponent({
         max_users: maxUserInput.value,
         round: roundInput.value,
         draw_time: drawTimeInput.value,
-        privacy: (roomTypeInput.value===0?true:false)
+        privacy: roomTypeInput.value === 0 ? true : false,
       } as RequestRawInfo;
       context.emit("onCreateBtnClicked", requestRawInfo);
     };

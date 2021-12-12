@@ -66,50 +66,133 @@
     <div class="roomInfoBoard">
       <div class="roomName">
         <img src="../../assets/Draw/username.png" />
-        <input type="text" v-model="roomNameInput" :disabled="playerStateStore.playerInfo.id!==playerStateStore.playerInRoom.roomBaseInfo.onwerId"/>
+        <input
+          type="text"
+          v-model="roomNameInput"
+          :disabled="
+            playerStateStore.playerInfo.id !==
+            playerStateStore.playerInRoom.roomBaseInfo.onwerId
+          "
+        />
       </div>
       <div class="maxUser">
         <img src="../../assets/Draw/maxuser.png" />
-        <input type="text" v-model="maxUserInput" :disabled="playerStateStore.playerInfo.id!==playerStateStore.playerInRoom.roomBaseInfo.onwerId"/> /20
+        <input
+          type="text"
+          v-model="maxUserInput"
+          :disabled="
+            playerStateStore.playerInfo.id !==
+            playerStateStore.playerInRoom.roomBaseInfo.onwerId
+          "
+        />
+        /20
       </div>
       <div class="drawTime rowCenter">
         <img src="../../assets/Draw/round.png" />
         <div class="drawTimeElement rowCenter">
-          <input type="radio" value="60" v-model="drawTimeInput" :disabled="playerStateStore.playerInfo.id!==playerStateStore.playerInRoom.roomBaseInfo.onwerId"/>60s
+          <input
+            type="radio"
+            value="60"
+            v-model="drawTimeInput"
+            :disabled="
+              playerStateStore.playerInfo.id !==
+              playerStateStore.playerInRoom.roomBaseInfo.onwerId
+            "
+          />60s
         </div>
         <div class="drawTimeElement rowCenter">
-          <input type="radio" value="90" v-model="drawTimeInput" :disabled="playerStateStore.playerInfo.id!==playerStateStore.playerInRoom.roomBaseInfo.onwerId"/>90s
+          <input
+            type="radio"
+            value="90"
+            v-model="drawTimeInput"
+            :disabled="
+              playerStateStore.playerInfo.id !==
+              playerStateStore.playerInRoom.roomBaseInfo.onwerId
+            "
+          />90s
         </div>
         <div class="drawTimeElement rowCenter">
-          <input type="radio" value="120" v-model="drawTimeInput" :disabled="playerStateStore.playerInfo.id!==playerStateStore.playerInRoom.roomBaseInfo.onwerId"/>120s
+          <input
+            type="radio"
+            value="120"
+            v-model="drawTimeInput"
+            :disabled="
+              playerStateStore.playerInfo.id !==
+              playerStateStore.playerInRoom.roomBaseInfo.onwerId
+            "
+          />120s
         </div>
       </div>
       <div class="round">
         <div class="roundElement rowCenter">
-          <input type="radio" value="1" v-model="roundInput" :disabled="playerStateStore.playerInfo.id!==playerStateStore.playerInRoom.roomBaseInfo.onwerId"/>一轮
+          <input
+            type="radio"
+            value="1"
+            v-model="roundInput"
+            :disabled="
+              playerStateStore.playerInfo.id !==
+              playerStateStore.playerInRoom.roomBaseInfo.onwerId
+            "
+          />一轮
         </div>
         <div class="roundElement rowCenter">
-          <input type="radio" value="2" v-model="roundInput" :disabled="playerStateStore.playerInfo.id!==playerStateStore.playerInRoom.roomBaseInfo.onwerId"/>两轮
+          <input
+            type="radio"
+            value="2"
+            v-model="roundInput"
+            :disabled="
+              playerStateStore.playerInfo.id !==
+              playerStateStore.playerInRoom.roomBaseInfo.onwerId
+            "
+          />两轮
         </div>
         <div class="roundElement rowCenter">
-          <input type="radio" value="3" v-model="roundInput" :disabled="playerStateStore.playerInfo.id!==playerStateStore.playerInRoom.roomBaseInfo.onwerId"/>三轮
+          <input
+            type="radio"
+            value="3"
+            v-model="roundInput"
+            :disabled="
+              playerStateStore.playerInfo.id !==
+              playerStateStore.playerInRoom.roomBaseInfo.onwerId
+            "
+          />三轮
         </div>
       </div>
       <div class="roomType">
         <img src="../../assets/Draw/privateRoom.png" />
         <div class="publicRoom">
-          <input type="radio" value="true" v-model="roomTypeInput" :disabled="playerStateStore.playerInfo.id!==playerStateStore.playerInRoom.roomBaseInfo.onwerId"/>开放房间
+          <input
+            type="radio"
+            value="true"
+            v-model="roomTypeInput"
+            :disabled="
+              playerStateStore.playerInfo.id !==
+              playerStateStore.playerInRoom.roomBaseInfo.onwerId
+            "
+          />开放房间
         </div>
         <div class="privateRoom">
           <input
             type="radio"
             value="false"
             v-model="roomTypeInput"
-            :disabled="playerStateStore.playerInfo.id!==playerStateStore.playerInRoom.roomBaseInfo.onwerId"
+            :disabled="
+              playerStateStore.playerInfo.id !==
+              playerStateStore.playerInRoom.roomBaseInfo.onwerId
+            "
           />仅能通过房间号搜索
         </div>
       </div>
-      <button class="btnCreate" @click="updateBtnClick" :disabled="playerStateStore.playerInfo.id!==playerStateStore.playerInRoom.roomBaseInfo.onwerId">修改</button>
+      <button
+        class="btnCreate"
+        @click="updateBtnClick"
+        :disabled="
+          playerStateStore.playerInfo.id !==
+          playerStateStore.playerInRoom.roomBaseInfo.onwerId
+        "
+      >
+        修改
+      </button>
     </div>
 
     <img class="close" @click="onExitRoom" src="../../assets/Draw/exit.png" />
@@ -125,13 +208,21 @@ import { storeToRefs } from "pinia";
 
 export default defineComponent({
   name: "inRoom",
-  emits: ["onReadyChange", "onExitRoom", "onPathDrawn", "onSubmitGuess","onChangeRoomInfo"],
+  emits: [
+    "onReadyChange",
+    "onExitRoom",
+    "onPathDrawn",
+    "onSubmitGuess",
+    "onChangeRoomInfo",
+  ],
   components: {
     drawBox,
   },
   setup(props, context) {
     const playerStateStore = usePlayerStateStore();
-    const { playerInRoomChatArray,playerInRoom } = storeToRefs(usePlayerStateStore());
+    const { playerInRoomChatArray, playerInRoom } = storeToRefs(
+      usePlayerStateStore()
+    );
     let roomNameInput = ref(playerInRoom.value.roomBaseInfo.roomName);
     let maxUserInput = ref(playerInRoom.value.roomBaseInfo.maxUsers);
     let roundInput = ref(playerInRoom.value.roomDynamicState.round);
@@ -147,7 +238,7 @@ export default defineComponent({
     let setGuessInput = ref("");
     let btnSubmitGuessDisabled = ref(false);
     const setGuess = function () {
-      if(playerStateStore.playerState === PlayerState.PLAYING_DRAWING){
+      if (playerStateStore.playerState === PlayerState.PLAYING_DRAWING) {
         return;
       }
       context.emit("onSubmitGuess", setGuessInput.value);
@@ -168,16 +259,16 @@ export default defineComponent({
     const onDrawOnePath = function (e: any) {
       context.emit("onPathDrawn", e);
     };
-    const updateBtnClick= function(){
-      context.emit("onChangeRoomInfo",{
+    const updateBtnClick = function () {
+      context.emit("onChangeRoomInfo", {
         room_name: roomNameInput.value,
         round: roundInput.value,
         draw_time: drawTimeInput.value,
         max_users: maxUserInput.value,
-        privacy:roomTypeInput.value,
-        word_lib:"abc"
-      })
-    }
+        privacy: roomTypeInput.value,
+        word_lib: "abc",
+      });
+    };
     return {
       playerStateStore,
       PlayerState,
@@ -192,7 +283,7 @@ export default defineComponent({
       roundInput,
       maxUserInput,
       roomNameInput,
-      updateBtnClick
+      updateBtnClick,
     };
   },
 });
@@ -352,9 +443,9 @@ export default defineComponent({
   bottom: 2%;
   border-radius: 8px;
   border: 3px solid black;
-  z-index:10000;
+  z-index: 10000;
 }
-.roomInfoBoard{
+.roomInfoBoard {
   display: flex;
   flex-direction: column;
   border: 3px solid black;
@@ -364,8 +455,8 @@ export default defineComponent({
   align-items: flex-start;
   font-size: 1.2rem;
   font-weight: 600;
-  height:80%;
-  width:20%;
+  height: 80%;
+  width: 20%;
   overflow: hidden;
 }
 .roomName {

@@ -9,8 +9,8 @@
     <div class="roomList">
       <ul>
         <li
-          v-for="item in roomInfoStore.roomList.filter(v=>{
-            return v.roomDynamicState.privacy===false
+          v-for="item in roomInfoStore.roomList.filter((v) => {
+            return v.roomDynamicState.privacy === false;
           })"
           :key="item.roomBaseInfo.roomId"
           @click="onEnterRoomClicked(item.roomBaseInfo.roomId)"
