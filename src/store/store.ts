@@ -55,6 +55,11 @@ const usePlayerStateStore = defineStore({
     onPlayerEnterRoom(room: RoomDetailInfo) {
       this.playerInRoom = room;
     },
+    onGameOver(){
+      this.playerInRoom.roomDynamicState.users.forEach(v=>{
+        v.ready=false;
+      })
+    },
     onInRoomPlayerStateChanged(user_info: PlayerInfo) {
       const user = this.playerInRoom.roomDynamicState.users.find(
         (p) => p.id === user_info.id

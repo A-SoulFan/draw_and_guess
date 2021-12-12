@@ -372,8 +372,9 @@ export default defineComponent({
                     text: `猜了${v.guess_word}`,
                   }))
                 );
-              } else if (data.info === "game_over") {
+              } else if (data.type === "game_over") {
                 playerStateStore.changePlayerState(PlayerState.INROOM_WAITING);
+                playerStateStore.onGameOver()
               } else {
                 if (data.type === "current_drawer") {
                   playerStateStore.appendChat({
@@ -423,7 +424,7 @@ export default defineComponent({
           case "transfer":
             playerStateStore.changePath(datas.data.pathInfo);
             break;
-          case "set_guesser":
+          case "set_guess":
             playerStateStore.appendChat({
               playerName: "广播工具人",
               text: `你现在猜了:${datas.data}`,
