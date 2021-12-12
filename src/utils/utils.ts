@@ -71,11 +71,26 @@ const demToHex = function (sc:number):string{
 const rgbToHex = function (r:number,g:number,b:number):string{
   return '#'+demToHex(r)+demToHex(g)+demToHex(b);
 }
+const getToken= function(cookie:string):string|null{
+  const rawCookie=cookie.split(';')
+  const s = rawCookie.find(v=>{
+    const p=v.split('=')
+    return p[0].trim()==='asoulFanToken'
+
+  })
+  if(s){
+    return s.trim().split("=")[1]
+  }else{
+    return null
+  }
+
+}
 export {
   makeRoomBaseInfo,
   makeRoomDynamicState,
   makeRoomDetailInfo,
   getUserString,
   makePlayerInfo,
-  rgbToHex
+  rgbToHex,
+  getToken
 };

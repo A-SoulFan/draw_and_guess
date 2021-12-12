@@ -46,7 +46,7 @@
           :key="item.id"
         >
           <img class="headPicture" src="../../assets/Draw/diana.jpg" />
-          <div class="playerName">{{ item.id }}</div>
+          <div class="playerName">{{ item.name }}</div>
           <div class="playerState">
             <span v-if="item.ready === 'true'" class="playerReady">已准备</span>
             <span v-else class="playerWaiting">未准备</span>

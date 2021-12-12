@@ -3,7 +3,7 @@ room visibility 搜索 * 猜的格式可能要变 * 猜的正确性还没表达�
 聊天框的显示问题 UI * set_guess返回值 清空面板 */
 
 <template>
-  <div class="mainPage">
+  <div class="mainPage" v-if="playerStateStore.playerState!==PlayerState.PENDING">
     <in-room
       v-if="
         playerStateStore.playerState === PlayerState.INROOM_WAITING ||
@@ -41,6 +41,10 @@ room visibility 搜索 * 猜的格式可能要变 * 猜的正确性还没表达�
     </div>
     <img class="logoASF" src="../../assets/Draw/LOGO.png" />
   </div>
+  <div class="mainPage" v-else>
+    <div class="pending">登陆中……</div>
+    <button @click="retry">重试</button>
+  </div>
 </template>
 
 <script lang="ts">
@@ -55,7 +59,7 @@ import {
   RespondRawInfo,
 } from "../../types/types";
 import { usePlayerStateStore, useRoomInfoStore } from "../../store/store";
-import { makeRoomDetailInfo } from "../../utils/utils";
+import { getToken, makeRoomDetailInfo } from "../../utils/utils";
 
 export default defineComponent({
   name: "drawMain",
@@ -93,6 +97,26 @@ export default defineComponent({
         })
       );
     };
+    let counter=0;
+    const retry=function(){
+      if(counter===0){
+        counter=1;
+        setTimeout(()=>{
+            counter=0;
+        },10000)
+
+        let token=getToken(document.cookie)
+        if(token){
+          websocketClient.send(`asoulFanToken=${token}`);
+        }else{
+          alert('登录验证失败！请登录后重试。')
+        }
+      }else{
+          alert('十秒钟最多验证一次！')
+      }
+
+
+    }
     const onChangeRoomInfo= function(e:RequestRawInfo){
       console.log(playerStateStore.playerInRoom.roomDynamicState)
       console.log(JSON.stringify({
@@ -173,7 +197,12 @@ export default defineComponent({
     };
     onMounted((): void => {
       websocketClient.onopen = () => {
-        websocketClient.send("asoulFanToken=123456");
+        let token=getToken(document.cookie)
+        if(token){
+          websocketClient.send(`asoulFanToken=${token}`);
+        }else{
+          alert('登录验证失败！请登录后重试。')
+        }
       };
 
       websocketClient.onmessage = (evt) => {
@@ -449,6 +478,8 @@ export default defineComponent({
               )
               playerStateStore.onGameOver()
 
+            }else if(datas.error===-1){
+              alert("登录验证失败！请登陆后重试。")
             }else{
               throw new Error(JSON.stringify(datas));
             }
@@ -472,7 +503,8 @@ export default defineComponent({
       onExitRoom,
       onPathDrawn,
       onSubmitGuess,
-      onChangeRoomInfo
+      onChangeRoomInfo,
+      retry
     };
   },
 });
@@ -566,5 +598,13 @@ export default defineComponent({
   right: 0;
   top: 0;
   bottom: 0;
+}
+.pending{
+  height:100%;
+  width: 100%;
+  background-image:url(../../assets/Draw/background.png);
+  background-repeat: no-repeat;
+  background-size:cover;
+  font-size:10rem;
 }
 </style>
