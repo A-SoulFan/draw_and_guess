@@ -9,7 +9,9 @@
     <div class="roomList">
       <ul>
         <li
-          v-for="item in roomInfoStore.roomList"
+          v-for="item in roomInfoStore.roomList.filter(v=>{
+            return v.roomDynamicState.privacy===false
+          })"
           :key="item.roomBaseInfo.roomId"
           @click="onEnterRoomClicked(item.roomBaseInfo.roomId)"
         >
@@ -173,7 +175,6 @@ export default defineComponent({
 }
 .roomList ul {
   margin-top: 10%;
-  margin-left: -15px;
   list-style: none;
   position: relative;
 }

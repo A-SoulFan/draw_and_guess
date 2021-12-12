@@ -63,7 +63,54 @@
         <button v-else @click="changeReadyState">准备</button>
       </div>
     </div>
-    <div class="scoreBoard">4</div>
+    <div class="roomInfoBoard">
+      <div class="roomName">
+        <img src="../../assets/Draw/username.png" />
+        <input type="text" v-model="roomNameInput" :disabled="playerStateStore.playerInfo.id!==playerStateStore.playerInRoom.roomBaseInfo.onwerId"/>
+      </div>
+      <div class="maxUser">
+        <img src="../../assets/Draw/maxuser.png" />
+        <input type="text" v-model="maxUserInput" :disabled="playerStateStore.playerInfo.id!==playerStateStore.playerInRoom.roomBaseInfo.onwerId"/> /20
+      </div>
+      <div class="drawTime rowCenter">
+        <img src="../../assets/Draw/round.png" />
+        <div class="drawTimeElement rowCenter">
+          <input type="radio" value="60" v-model="drawTimeInput" :disabled="playerStateStore.playerInfo.id!==playerStateStore.playerInRoom.roomBaseInfo.onwerId"/>60s
+        </div>
+        <div class="drawTimeElement rowCenter">
+          <input type="radio" value="90" v-model="drawTimeInput" :disabled="playerStateStore.playerInfo.id!==playerStateStore.playerInRoom.roomBaseInfo.onwerId"/>90s
+        </div>
+        <div class="drawTimeElement rowCenter">
+          <input type="radio" value="120" v-model="drawTimeInput" :disabled="playerStateStore.playerInfo.id!==playerStateStore.playerInRoom.roomBaseInfo.onwerId"/>120s
+        </div>
+      </div>
+      <div class="round">
+        <div class="roundElement rowCenter">
+          <input type="radio" value="1" v-model="roundInput" :disabled="playerStateStore.playerInfo.id!==playerStateStore.playerInRoom.roomBaseInfo.onwerId"/>一轮
+        </div>
+        <div class="roundElement rowCenter">
+          <input type="radio" value="2" v-model="roundInput" :disabled="playerStateStore.playerInfo.id!==playerStateStore.playerInRoom.roomBaseInfo.onwerId"/>两轮
+        </div>
+        <div class="roundElement rowCenter">
+          <input type="radio" value="3" v-model="roundInput" :disabled="playerStateStore.playerInfo.id!==playerStateStore.playerInRoom.roomBaseInfo.onwerId"/>三轮
+        </div>
+      </div>
+      <div class="roomType">
+        <img src="../../assets/Draw/privateRoom.png" />
+        <div class="publicRoom">
+          <input type="radio" value="true" v-model="roomTypeInput" :disabled="playerStateStore.playerInfo.id!==playerStateStore.playerInRoom.roomBaseInfo.onwerId"/>开放房间
+        </div>
+        <div class="privateRoom">
+          <input
+            type="radio"
+            value="false"
+            v-model="roomTypeInput"
+            :disabled="playerStateStore.playerInfo.id!==playerStateStore.playerInRoom.roomBaseInfo.onwerId"
+          />仅能通过房间号搜索
+        </div>
+      </div>
+      <button class="btnCreate" @click="updateBtnClick" :disabled="playerStateStore.playerInfo.id!==playerStateStore.playerInRoom.roomBaseInfo.onwerId">修改</button>
+    </div>
 
     <img class="close" @click="onExitRoom" src="../../assets/Draw/exit.png" />
   </div>
@@ -72,19 +119,25 @@
 <script lang="ts">
 import { defineComponent, ref, onMounted, watch } from "vue";
 import { usePlayerStateStore } from "../../store/store";
-import { PlayerState } from "../../types/types";
+import { PlayerState, RequestRawInfo } from "../../types/types";
 import drawBox from "./DrawBox.vue";
 import { storeToRefs } from "pinia";
 
 export default defineComponent({
   name: "inRoom",
-  emits: ["onReadyChange", "onExitRoom", "onPathDrawn", "onSubmitGuess"],
+  emits: ["onReadyChange", "onExitRoom", "onPathDrawn", "onSubmitGuess","onChangeRoomInfo"],
   components: {
     drawBox,
   },
   setup(props, context) {
     const playerStateStore = usePlayerStateStore();
-    const { playerInRoomChatArray } = storeToRefs(usePlayerStateStore());
+    const { playerInRoomChatArray,playerInRoom } = storeToRefs(usePlayerStateStore());
+    let roomNameInput = ref(playerInRoom.value.roomBaseInfo.roomName);
+    let maxUserInput = ref(playerInRoom.value.roomBaseInfo.maxUsers);
+    let roundInput = ref(playerInRoom.value.roomDynamicState.round);
+    let roomTypeInput = ref(playerInRoom.value.roomDynamicState.privacy);
+    let drawTimeInput = ref(playerInRoom.value.roomDynamicState.drawTime);
+
     onMounted(function () {
       const chatElement = document.getElementById("chatBox") as any;
       watch(playerInRoomChatArray, (now) => {
@@ -94,8 +147,10 @@ export default defineComponent({
     let setGuessInput = ref("");
     let btnSubmitGuessDisabled = ref(false);
     const setGuess = function () {
+      if(playerStateStore.playerState === PlayerState.PLAYING_DRAWING){
+        return;
+      }
       context.emit("onSubmitGuess", setGuessInput.value);
-      btnSubmitGuessDisabled.value = true;
     };
     const changeReadyState = function () {
       if (playerStateStore.playerState === PlayerState.INROOM_READY) {
@@ -113,6 +168,15 @@ export default defineComponent({
     const onDrawOnePath = function (e: any) {
       context.emit("onPathDrawn", e);
     };
+    const updateBtnClick= function(){
+      context.emit("onChangeRoomInfo",{
+        room_name: roomNameInput.value,
+        round: roundInput.value,
+        draw_time: drawTimeInput.value,
+        max_users: maxUserInput.value,
+        visible:roomTypeInput.value
+      })
+    }
     return {
       playerStateStore,
       PlayerState,
@@ -122,6 +186,12 @@ export default defineComponent({
       setGuessInput,
       setGuess,
       btnSubmitGuessDisabled,
+      drawTimeInput,
+      roomTypeInput,
+      roundInput,
+      maxUserInput,
+      roomNameInput,
+      updateBtnClick
     };
   },
 });
@@ -207,13 +277,6 @@ export default defineComponent({
   flex-direction: column;
   justify-content: space-between;
 }
-.scoreBoard {
-  border: 3px solid black;
-  border-radius: 8px;
-  height: 85%;
-  width: 30%;
-  flex: 0 0 20%;
-}
 .headPicture {
   border: 3px solid black;
   border-radius: 80px;
@@ -288,5 +351,112 @@ export default defineComponent({
   bottom: 2%;
   border-radius: 8px;
   border: 3px solid black;
+  z-index:10000;
+}
+.roomInfoBoard{
+  display: flex;
+  flex-direction: column;
+  border: 3px solid black;
+  border-radius: 8px;
+  background-color: rgb(230, 230, 230);
+  justify-content: space-around;
+  align-items: flex-start;
+  font-size: 1.2rem;
+  font-weight: 600;
+  height:80%;
+  width:20%;
+  overflow: hidden;
+}
+.roomName {
+  margin-top: 6%;
+  margin-left: 12.5%;
+  width: 90%;
+  display: flex;
+  align-items: center;
+}
+.roomName img {
+  width: 10%;
+}
+.roomName input {
+  height: 24px;
+  width: 80%;
+  border: 3px solid black;
+  border-radius: 8px;
+  font-size: 1.4rem;
+  background-color: transparent;
+}
+.round {
+  margin-left: 15%;
+  width: 90%;
+  display: flex;
+  align-items: center;
+}
+.roundElement input {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+.maxUser {
+  display: flex;
+  align-items: center;
+  align-self: flex-start;
+  margin-left: 10%;
+  width: 90%;
+}
+.maxUser img {
+  width: 10%;
+}
+.maxUser input {
+  font-size: 1.4rem;
+  height: 24px;
+  width: 30px;
+  border: 3px solid black;
+  border-radius: 8px;
+  background-color: transparent;
+}
+.roomType {
+  margin-left: 10%;
+  width: 90%;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+.roomType img {
+  width: 10%;
+}
+.publicRoom {
+  margin-left: 10%;
+}
+.privateRoom {
+  margin-left: 10%;
+}
+.drawTime {
+  margin-left: 10%;
+  width: 90%;
+}
+.drawTime img {
+  width: 10%;
+}
+.drawTime input {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+.btnCreate {
+  z-index: 1;
+  min-height: 25px;
+  height: 7%;
+  width: 40%;
+  align-self: center;
+  border-radius: 8px;
+  border: 3px solid black;
+}
+.btnCreate:hover {
+  background-color: rgb(9, 9, 9, 0.3);
+}
+.btnCreate:active {
+  background-color: rgb(9, 9, 9, 0.5);
+}
+.rowCenter {
+  display: flex;
+  align-items: center;
 }
 </style>

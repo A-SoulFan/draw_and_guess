@@ -16,6 +16,7 @@ room visibility 搜索 * 猜的格式可能要变 * 猜的正确性还没表达�
       @on-exit-room="onExitRoom"
       @on-path-drawn="onPathDrawn"
       @on-submit-guess="onSubmitGuess"
+      @on-change-room-info="onChangeRoomInfo"
     ></in-room>
     <div class="leftBar">
       <component
@@ -91,6 +92,20 @@ export default defineComponent({
         })
       );
     };
+    const onChangeRoomInfo= function(e:RequestRawInfo){
+      websocketClient.send(
+        JSON.stringify({
+          api_type: "updateRoom",
+          param: {
+            room_name: e.room_name,
+            round: `${e.round}`,
+            draw_time: `${e.draw_time}`,
+            max_users: `${e.max_users}`,
+            visible:`${e.privacy}`
+          },
+        })
+      );
+    }
     const onEnterRoom = function (e: string) {
       websocketClient.send(
         JSON.stringify({
@@ -149,10 +164,10 @@ export default defineComponent({
 
       websocketClient.onmessage = (evt) => {
         let datas = JSON.parse(evt.data);
+        console.log(datas)
         if (datas.api_type) {
           datas.api = datas.api_type;
         }
-        console.log(datas);
         //连接建立
         switch (datas.api) {
           case "connect":
@@ -351,7 +366,7 @@ export default defineComponent({
               } else {
                 let info = data.info;
                 info = data.info.split(":");
-                if (info[0] === "drawer") {
+                if (info[0].trim() === "drawer") {
                   playerStateStore.appendChat({
                     playerName: "广播工具人",
                     text: `接下来由:${info[1]}来画`,
@@ -373,10 +388,10 @@ export default defineComponent({
                       PlayerState.PLAYING_ANSWERING
                     );
                   }
-                } else if (info[0] === "draw") {
+                } else if (info[0].trim() === "draw") {
                   playerStateStore.appendChat({
                     playerName: "广播工具人",
-                    text: `接下来请画:${info[1]}!`,
+                    text: `请画:${info[1]}!`,
                   });
                 }
               }
@@ -391,6 +406,10 @@ export default defineComponent({
                   playerName: "广播工具人",
                   text: `还有 ${info[1]}s 开始游戏`,
                 });
+                if(parseInt(info[1])===1){
+                  playerStateStore.setTimer(playerStateStore.playerInRoom.roomDynamicState.drawTime)
+                  console.log(playerStateStore.playerInRoom.roomDynamicState.drawTime)
+                }
               }
             })();
 
@@ -402,6 +421,22 @@ export default defineComponent({
             playerStateStore.changePath(datas.data.pathInfo);
             break;
           case "set_guesser":
+            playerStateStore.appendChat({
+              playerName: "广播工具人",
+              text: `你现在猜了:${datas.data}`,
+            });
+            break;
+
+          case "updateRoom":
+            (function () {
+              let roomInfo = datas.data;
+              if (roomInfo) {
+                playerStateStore.onPlayerEnterRoom(
+                  roomInfo
+                );
+              }
+              alert("修改成功！")
+            })();
             break;
           default:
             throw new Error(JSON.stringify(datas));
@@ -424,6 +459,7 @@ export default defineComponent({
       onExitRoom,
       onPathDrawn,
       onSubmitGuess,
+      onChangeRoomInfo
     };
   },
 });

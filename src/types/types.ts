@@ -8,11 +8,6 @@ enum PlayerState {
   PLAYING_DRAWING,
   DISCONNECTED,
 }
-enum RoomState {
-  WAITING,
-  PLAYING,
-}
-
 interface GlobalSetting {
   Volume: number;
 }
@@ -39,6 +34,7 @@ interface RoomDynamicState {
   userInRoom: number;
   users: Array<PlayerInfo>;
   isPlaying: boolean;
+  privacy: boolean
 }
 interface RoomDetailInfo {
   roomBaseInfo: RoomBaseInfo;
@@ -53,6 +49,7 @@ interface RespondRawInfo {
   round: number;
   draw_time: number;
   user_in_room: number;
+  privacy:boolean;
   users: Array<PlayerInfo>;
   is_playing: boolean;
 }
@@ -67,7 +64,6 @@ export {
   RoomBaseInfo,
   RoomDynamicState,
   PlayerState,
-  RoomState,
   RespondRawInfo,
   RequestRawInfo,
   PlayerRawInfo,

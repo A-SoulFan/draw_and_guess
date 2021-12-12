@@ -1,5 +1,9 @@
 <template>
   <div class="drawRoomMain" id="drawRoomMain">
+    <div class="timer">
+      <img src="../../assets/Draw/round.png" width="30">
+      <span>{{timer}}</span>
+    </div>
     <canvas
       class="drawBoard"
       id="drawCanvasBoard"
@@ -19,6 +23,14 @@
       :class="{ drawToolActive: penType === 1 }"
       @click="onEraserChose"
     />
+    <div class="changeColor">
+      <div>
+        <input type="range" max="255" min="0" step="1" v-model="redColor">
+        <input type="range" max="255" min="0" step="1" v-model="greenColor">
+        <input type="range" max="255" min="0" step="1" v-model="blueColor">
+      </div>
+      <canvas id="colorDisplayer" width="40" height="40"></canvas>
+    </div>
   </div>
 </template>
 
@@ -27,6 +39,7 @@ import { defineComponent, onMounted, ref, watch } from "vue";
 import { usePlayerStateStore } from "../../store/store";
 import { storeToRefs } from "pinia";
 import { PlayerState } from "../../types/types";
+import {rgbToHex} from "@/utils/utils";
 
 export default defineComponent({
   name: "drawBox",
@@ -36,7 +49,36 @@ export default defineComponent({
     let drawContext = null as any;
     let drawFlag = false;
     let penType = ref(1);
+    let redColor=ref(0);
+    let greenColor=ref(0);
+    let blueColor=ref(0);
+    let colorDisplayer=null as any;
+    const {timer} = storeToRefs(usePlayerStateStore())
     const { pathInfo, playerState } = storeToRefs(usePlayerStateStore());
+
+    watch(redColor,()=>{
+      if (playerState.value !== PlayerState.PLAYING_DRAWING) {
+        return;
+      }
+
+      colorDisplayer.fillStyle=rgbToHex(redColor.value,greenColor.value,blueColor.value)
+      colorDisplayer.fillRect(0,0,40,40);
+    })
+    watch(greenColor,()=>{
+      if (playerState.value !== PlayerState.PLAYING_DRAWING) {
+        return;
+      }
+      colorDisplayer.fillStyle=rgbToHex(redColor.value,greenColor.value,blueColor.value)
+      colorDisplayer.fillRect(0,0,40,40);
+    })
+    watch(blueColor,()=>{
+      if (playerState.value !== PlayerState.PLAYING_DRAWING) {
+        return;
+      }
+      colorDisplayer.fillStyle=rgbToHex(redColor.value,greenColor.value,blueColor.value)
+      colorDisplayer.fillRect(0,0,40,40);
+    })
+
     watch(pathInfo, (now) => {
       if (playerState.value === PlayerState.PLAYING_ANSWERING) {
         if (drawContext) {
@@ -68,7 +110,7 @@ export default defineComponent({
         drawContext.strokeStyle = "#E6E6E6";
         drawContext.lineWidth = 15;
       } else {
-        drawContext.strokeStyle = "#000000";
+        drawContext.strokeStyle = rgbToHex(redColor.value,greenColor.value,blueColor.value);
         drawContext.lineWidth = 3;
       }
       drawContext.beginPath();
@@ -94,7 +136,7 @@ export default defineComponent({
         mouseTrace[0][1] = "#E6E6E6";
         mouseTrace[0][2] = 15;
       } else {
-        mouseTrace[0][1] = "#000000";
+        mouseTrace[0][1] = rgbToHex(redColor.value,greenColor.value,blueColor.value);
         mouseTrace[0][2] = 3;
       }
       console.log(mouseTrace[0]);
@@ -116,12 +158,18 @@ export default defineComponent({
       penType.value = 1;
     };
     onMounted(() => {
+      colorDisplayer = (document.getElementById('colorDisplayer') as HTMLCanvasElement).getContext("2d");
       const canvas: any = document.getElementById("drawCanvasBoard");
       const drawRoom: any = document.getElementById("drawRoomMain");
       canvas.width = drawRoom.offsetWidth;
       canvas.height = drawRoom.offsetHeight;
       const canvasContext: any = canvas.getContext("2d");
       drawContext = canvasContext;
+      watch(timer,(now,pre)=>{
+        if(now>pre){
+          canvasContext.clearRect(0,0,canvas.width,canvas.height);
+        }
+      })
     });
     return {
       onMouseMove,
@@ -132,12 +180,16 @@ export default defineComponent({
       penType,
       onPenChose,
       onEraserChose,
+      redColor,
+      greenColor,
+      blueColor,
+      timer
     };
   },
 });
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
 .drawRoomMain {
   background-color: rgb(230, 230, 230);
   overflow: hidden;
@@ -164,5 +216,27 @@ export default defineComponent({
 }
 .eraser:hover {
   cursor: pointer;
+}
+.changeColor{
+  position: absolute;
+  width: 100px;
+  left: 120px;
+  bottom: 0px;
+  display: flex;
+  justify-content: space-between;
+}
+.changeColor input{
+
+}
+.timer{
+  position: absolute;
+  right:3%;
+  top:2%;
+  display: flex;
+  align-items: center;
+  span{
+    margin-left: 4px;
+    font-size:1.2rem;
+  }
 }
 </style>

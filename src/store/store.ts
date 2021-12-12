@@ -19,11 +19,25 @@ const usePlayerStateStore = defineStore({
     playerInRoom: makeRoomDetailInfo({} as RequestRawInfo),
     playerInRoomChatArray: [] as Array<ChatInfo>,
     pathInfo: [] as any,
+    timer:0,
+    timerId: null as any
   }),
   getters: {
     getState: (state) => state.playerState,
   },
   actions: {
+    setTimer(tim: number){
+      this.timer=tim
+      this.timerId=setInterval(()=>{
+        this.decTimer()
+        if(this.timer===0){
+          clearInterval(this.timerId)
+        }
+      },1000)
+    },
+    decTimer(){
+      this.timer--;
+    },
     updatePlayerInfo(newState: PlayerInfo) {
       Object.keys(this.playerInfo).forEach((v: string) => {
         if ((newState as PlayerInfo)[v]) {

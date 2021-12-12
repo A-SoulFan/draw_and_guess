@@ -26,6 +26,7 @@ const makeRoomDynamicState = function (
     round: e.round ?? 3,
     drawTime: e.draw_time ?? 60,
     userInRoom: e.user_in_room ?? 0,
+    privacy: e.privacy??false,
     users:
       e.users?.map((v: PlayerRawInfo) => makePlayerInfo(v)) ??
       ([] as Array<PlayerInfo>),
@@ -50,10 +51,31 @@ const makePlayerInfo = function (e: PlayerRawInfo): PlayerInfo {
     ready: e.ready ?? false,
   } as PlayerInfo;
 };
+const demToHex = function (sc:number):string{
+  const HEX=['A','B','C','D','E','F']
+  let res=''
+  while(sc){
+    const nowbit=sc%16
+    res=(nowbit>=10?HEX[nowbit-10]:`${nowbit}`)+res
+    sc=Math.floor(sc/16);
+  }
+  if(res===''){
+    res='00'
+  }
+  else if(res.length===1){
+    res='0'+res
+  }
+  return res
+
+}
+const rgbToHex = function (r:number,g:number,b:number):string{
+  return '#'+demToHex(r)+demToHex(g)+demToHex(b);
+}
 export {
   makeRoomBaseInfo,
   makeRoomDynamicState,
   makeRoomDetailInfo,
   getUserString,
   makePlayerInfo,
+  rgbToHex
 };
