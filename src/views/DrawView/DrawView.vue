@@ -41,9 +41,20 @@ room visibility 搜索 * 猜的格式可能要变 * 猜的正确性还没表达�
     </div>
     <img class="logoASF" src="../../assets/Draw/LOGO.png" />
   </div>
-  <div class="mainPage" v-else>
-    <div class="pending">登陆中……</div>
-    <button @click="retry">重试</button>
+  <div class="mainPage2" v-else>
+
+    <div class="login">
+      <div class="label">你画我猜</div>
+      <div>
+        账号:<input type="text" v-model="account">
+      </div>
+      <div>
+        密码:<input type="password" v-model="password">
+      </div>
+
+      <button @click="login">登录</button>
+    </div>
+
   </div>
 </template>
 
@@ -69,6 +80,8 @@ export default defineComponent({
     inRoom,
   },
   setup: function () {
+    let account=ref('')
+    let password=ref('')
     let isSettingOpen = ref(false);
     let intervalLoopId = null;
     let leftCurrentView = "controlBar";
@@ -98,25 +111,34 @@ export default defineComponent({
       );
     };
     let counter=0;
-    const retry=function(){
+    const login=function(){
       if(counter===0){
         counter=1;
         setTimeout(()=>{
             counter=0;
         },10000)
-
-        let token=getToken(document.cookie)
-        if(token){
-          websocketClient.send(`asoulFanToken=${token}`);
-        }else{
-          alert('登录验证失败！请在弹出的登录窗口登录后重试。')
-          window.open("https://login.asoulfan.com/login","_blank");
-        }
+        fetch('https://api.asoulfan.com/user/user/login',{
+          method:'POST',
+          headers:{
+            "Content-Type":"application/json"
+          },
+          body:JSON.stringify({
+            username:`${account.value}`,
+            password:`${password.value}`
+          })
+        }).then(response=>response.json())
+        .then(res=>{
+          if(res.code===500){
+            alert("账号或密码错误。")
+          }else{
+            let token=res.data.token
+            document.cookie=`asoulFanToken=${token}`
+            websocketClient.send(`asoulFanToken=${token}`);
+          }
+        })
       }else{
           alert('十秒钟最多验证一次！')
       }
-
-
     }
     const onChangeRoomInfo= function(e:RequestRawInfo){
       console.log(playerStateStore.playerInRoom.roomDynamicState)
@@ -201,9 +223,6 @@ export default defineComponent({
         let token=getToken(document.cookie)
         if(token){
           websocketClient.send(`asoulFanToken=${token}`);
-        }else{
-          alert('登录验证失败！请在弹出的登录窗口登录后重试。')
-          window.open("https://login.asoulfan.com/login","_blank");
         }
       };
 
@@ -481,8 +500,7 @@ export default defineComponent({
               playerStateStore.onGameOver()
 
             }else if(datas.error===-1){
-              alert('登录验证失败！请在弹出的登录窗口登录后重试。')
-              window.open("https://login.asoulfan.com/login","_blank");
+              alert('登录验证失败！请登录后重试。')
             }else{
               throw new Error(JSON.stringify(datas));
             }
@@ -507,7 +525,9 @@ export default defineComponent({
       onPathDrawn,
       onSubmitGuess,
       onChangeRoomInfo,
-      retry
+      login,
+      account,
+      password
     };
   },
 });
@@ -602,12 +622,66 @@ export default defineComponent({
   top: 0;
   bottom: 0;
 }
-.pending{
-  height:100%;
-  width: 100%;
+.mainPage2{
+  border: 3px solid black;
+  border-radius: 8px;
+  display: flex;
+  height: calc(85vw / 16 * 9);
+  overflow: hidden;
+  position: absolute;
+  z-index: 0;
+  left: 20px;
+  right: 20px;
+
   background-image:url(../../assets/Draw/background.png);
   background-repeat: no-repeat;
   background-size:cover;
-  font-size:10rem;
+}
+.login{
+  position: absolute;
+  right:10%;
+  top:20%;
+  display: flex;
+  flex-direction: column;
+  background-color: rgba(230,230,230,.5);
+  border-radius: 8px;
+  width:25%;
+  height:60%;
+  border:3px solid black;
+  justify-content:space-around;
+  font-size:1rem;
+}
+.login div{
+  display: flex;
+  align-items: center;
+  margin-left:5%;
+}
+.login input{
+  border: 3px solid black;
+  border-radius: 8px;
+  height:2rem;
+  width:70%;
+  background-color:rgba(230,230,230,.5);
+  margin-left:3%;
+  margin-right:3%;
+}
+.login button{
+  width:50%;
+  align-self:center;
+  height:30px;
+  background-color:rgba(230,230,230,.5);
+  border: 3px solid black;
+  border-radius: 8px;
+}
+.login button:hover{
+  background-color:rgba(23,23,23,.3);
+}
+.login button:active{
+  background-color:rgba(23,23,23,.5);
+}
+.label{
+  align-self:center;
+  flex:0 0 10%;
+  font-size:2rem;
 }
 </style>
