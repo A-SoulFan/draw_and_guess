@@ -109,7 +109,8 @@ export default defineComponent({
         if(token){
           websocketClient.send(`asoulFanToken=${token}`);
         }else{
-          alert('登录验证失败！请登录后重试。')
+          alert('登录验证失败！请在弹出的登录窗口登录后重试。')
+          window.open("https://login.asoulfan.com/login","_blank");
         }
       }else{
           alert('十秒钟最多验证一次！')
@@ -201,7 +202,8 @@ export default defineComponent({
         if(token){
           websocketClient.send(`asoulFanToken=${token}`);
         }else{
-          alert('登录验证失败！请登录后重试。')
+          alert('登录验证失败！请在弹出的登录窗口登录后重试。')
+          window.open("https://login.asoulfan.com/login","_blank");
         }
       };
 
@@ -479,7 +481,8 @@ export default defineComponent({
               playerStateStore.onGameOver()
 
             }else if(datas.error===-1){
-              alert("登录验证失败！请登陆后重试。")
+              alert('登录验证失败！请在弹出的登录窗口登录后重试。')
+              window.open("https://login.asoulfan.com/login","_blank");
             }else{
               throw new Error(JSON.stringify(datas));
             }
