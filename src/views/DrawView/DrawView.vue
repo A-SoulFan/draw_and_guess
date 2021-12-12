@@ -69,7 +69,7 @@ export default defineComponent({
     let intervalLoopId = null;
     let leftCurrentView = "controlBar";
     let rightCurrentView = "roomList";
-    const websocketClient = new WebSocket("ws://localhost:1001");
+    const websocketClient = new WebSocket("ws://52.130.177.41:1001");
     const playerStateStore = usePlayerStateStore();
     const roomInfoStore = useRoomInfoStore();
     const changeSettingConpShowState = () => {
