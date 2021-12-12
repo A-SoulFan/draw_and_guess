@@ -69,7 +69,7 @@ export default defineComponent({
     let intervalLoopId = null;
     let leftCurrentView = "controlBar";
     let rightCurrentView = "roomList";
-    const websocketClient = new WebSocket("ws://52.130.177.41:1001");
+    const websocketClient = new WebSocket("ws://localhost:1001");
     const playerStateStore = usePlayerStateStore();
     const roomInfoStore = useRoomInfoStore();
     const changeSettingConpShowState = () => {
@@ -369,7 +369,7 @@ export default defineComponent({
                 playerStateStore.appendChat(
                   data.map((v) => ({
                     playerName: v.userName,
-                    text: `猜了${v.guess_word}`,
+                    text: v.guess_word==='nil'?"什么也没猜":`猜了${v.guess_word}`
                   }))
                 );
               } else if (data.type === "game_over") {
@@ -430,7 +430,6 @@ export default defineComponent({
               text: `你现在猜了:${datas.data}`,
             });
             break;
-
           case "updateRoom":
             (function () {
               let roomInfo = datas.data;
@@ -443,7 +442,17 @@ export default defineComponent({
             })();
             break;
           default:
-            throw new Error(JSON.stringify(datas));
+            if(datas.error===25){
+              alert("人数不足！")
+              playerStateStore.changePlayerState(
+                PlayerState.INROOM_WAITING
+              )
+              playerStateStore.onGameOver()
+
+            }else{
+              throw new Error(JSON.stringify(datas));
+            }
+
         }
       };
     });
