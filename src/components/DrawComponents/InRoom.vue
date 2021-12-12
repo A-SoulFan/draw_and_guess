@@ -174,7 +174,8 @@ export default defineComponent({
         round: roundInput.value,
         draw_time: drawTimeInput.value,
         max_users: maxUserInput.value,
-        visible:roomTypeInput.value
+        privacy:roomTypeInput.value,
+        word_lib:"abc"
       })
     }
     return {

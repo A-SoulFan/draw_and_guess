@@ -82,26 +82,40 @@ export default defineComponent({
     const onCreateRoom = function (e: RequestRawInfo) {
       websocketClient.send(
         JSON.stringify({
-          api_type: "makenewroom",
+          api: "makenewroom",
           param: {
             room_name: e.room_name,
             round: `${e.round}`,
             draw_time: `${e.draw_time}`,
             max_users: `${e.max_users}`,
+            visible: `${e.privacy}`
           },
         })
       );
     };
     const onChangeRoomInfo= function(e:RequestRawInfo){
+      console.log(playerStateStore.playerInRoom.roomDynamicState)
+      console.log(JSON.stringify({
+        api: "updateRoom",
+        param: {
+          room_name: e.room_name,
+          round: `${e.round}`,
+          draw_time: `${e.draw_time}`,
+          max_users: `${e.max_users}`,
+          visible:`${e.privacy}`,
+          word_library:`${e.word_lib}`
+        },
+      }))
       websocketClient.send(
         JSON.stringify({
-          api_type: "updateRoom",
+          api: "updateRoom",
           param: {
             room_name: e.room_name,
             round: `${e.round}`,
             draw_time: `${e.draw_time}`,
             max_users: `${e.max_users}`,
-            visible:`${e.privacy}`
+            visible:`${e.privacy}`,
+            word_libary:`${e.word_lib}`
           },
         })
       );
@@ -109,7 +123,7 @@ export default defineComponent({
     const onEnterRoom = function (e: string) {
       websocketClient.send(
         JSON.stringify({
-          api_type: "joinroom",
+          api: "joinroom",
           param: {
             id: e,
           },
@@ -119,7 +133,7 @@ export default defineComponent({
     const onReadyChange = function () {
       websocketClient.send(
         JSON.stringify({
-          api_type: "ready",
+          api: "ready",
           param: {
             nil: "nil",
           },
@@ -129,7 +143,7 @@ export default defineComponent({
     const onExitRoom = function () {
       websocketClient.send(
         JSON.stringify({
-          api_type: "exitroom",
+          api: "exitroom",
           param: {
             nil: "nil",
           },
@@ -140,7 +154,7 @@ export default defineComponent({
     const onPathDrawn = function (e: any) {
       websocketClient.send(
         JSON.stringify({
-          api_type: "transfer",
+          api: "transfer",
           data: {
             pathInfo: e,
           },
@@ -150,7 +164,7 @@ export default defineComponent({
     const onSubmitGuess = function (e: string) {
       websocketClient.send(
         JSON.stringify({
-          api_type: "setguess",
+          api: "setguess",
           param: {
             word: e,
           },
@@ -165,9 +179,6 @@ export default defineComponent({
       websocketClient.onmessage = (evt) => {
         let datas = JSON.parse(evt.data);
         console.log(datas)
-        if (datas.api_type) {
-          datas.api = datas.api_type;
-        }
         //连接建立
         switch (datas.api) {
           case "connect":
@@ -175,7 +186,7 @@ export default defineComponent({
               if (playerStateStore.playerState !== PlayerState.HANGING) {
                 return;
               }
-              websocketClient.send('{"api_type": "getallrooms"}');
+              websocketClient.send('{"api": "getallrooms"}');
             }, 10000);
             playerStateStore.changePlayerState(PlayerState.HANGING);
             (function () {
@@ -185,9 +196,9 @@ export default defineComponent({
                   rawInfo.user_info as PlayerInfo
                 );
               }
-              if (rawInfo.rooms_info) {
+              if (rawInfo.room_info?.rooms_info) {
                 roomInfoStore.updateAllState(
-                  rawInfo.rooms_info.map((v: RespondRawInfo) => {
+                  rawInfo.room_info.rooms_info.map((v: RespondRawInfo) => {
                     return makeRoomDetailInfo(v);
                   })
                 );
@@ -218,6 +229,21 @@ export default defineComponent({
               }
               let roomInfo = datas.data;
 
+              if (roomInfo) {
+                roomInfoStore.updateAllState(
+                  roomInfo.map((v: RespondRawInfo) => {
+                    return makeRoomDetailInfo(v);
+                  })
+                );
+              }
+            })();
+            break;
+          case "rooms_update":
+            (function () {
+              if (playerStateStore.playerState !== PlayerState.HANGING) {
+                return;
+              }
+              let roomInfo = datas.data;
               if (roomInfo) {
                 roomInfoStore.updateAllState(
                   roomInfo.map((v: RespondRawInfo) => {
@@ -263,24 +289,6 @@ export default defineComponent({
             (function () {
               let roomInfo = datas.data;
               if (roomInfo) {
-                roomInfo.draw_time = (function (drawTime) {
-                  //处理时间格式'xxxmyyys'
-                  if (drawTime) {
-                    let drawTimeMinute = parseInt(
-                      /[0-9]{0,3}m/.exec(drawTime) as any as string
-                    );
-                    let drawTimeSecond = parseInt(
-                      /[0-9]{0,3}s/.exec(drawTime) as any as string
-                    );
-                    if (isNaN(drawTimeMinute) && isNaN(drawTimeSecond)) {
-                      throw new Error(`inValid draw_time:${drawTime}`);
-                    } else {
-                      return `${
-                        (drawTimeMinute || 0) * 60 + (drawTimeSecond || 0)
-                      }`;
-                    }
-                  }
-                })(roomInfo.draw_time);
                 playerStateStore.changePlayerState(PlayerState.INROOM_WAITING);
                 playerStateStore.onPlayerEnterRoom(
                   makeRoomDetailInfo(roomInfo)
@@ -293,23 +301,6 @@ export default defineComponent({
             (function () {
               let roomInfo = datas.data;
               if (roomInfo) {
-                roomInfo.draw_time = (function (drawTime) {
-                  if (drawTime) {
-                    let drawTimeMinute = parseInt(
-                      /[0-9]{0,3}m/.exec(drawTime) as any as string
-                    );
-                    let drawTimeSecond = parseInt(
-                      /[0-9]{0,3}s/.exec(drawTime) as any as string
-                    );
-                    if (isNaN(drawTimeMinute) && isNaN(drawTimeSecond)) {
-                      throw new Error(`inValid draw_time:${drawTime}`);
-                    } else {
-                      return `${
-                        (drawTimeMinute || 0) * 60 + (drawTimeSecond || 0)
-                      }`;
-                    }
-                  }
-                })(roomInfo.draw_time);
                 playerStateStore.onPlayerEnterRoom(
                   makeRoomDetailInfo(roomInfo)
                 );
@@ -317,7 +308,27 @@ export default defineComponent({
             })();
             break;
           //退出房间
+          case "gamer_exit":
+            (function () {
+              let roomInfo = datas.data;
+              if (roomInfo) {
+                playerStateStore.onPlayerEnterRoom(
+                  makeRoomDetailInfo(roomInfo)
+                );
+              }
+            })();
+            break;
           case "exitRoom":
+            (function () {
+              let roomInfo = datas.data.rooms_info;
+              if (roomInfo) {
+                roomInfoStore.updateAllState(
+                  roomInfo.map((v: RespondRawInfo) => {
+                    return makeRoomDetailInfo(v);
+                  })
+                );
+              }
+            })();
             break;
           //准备
           case "user_ready":
@@ -333,7 +344,7 @@ export default defineComponent({
                 ) {
                   websocketClient.send(
                     JSON.stringify({
-                      api_type: "choosewordlib",
+                      api: "choosewordlib",
                       param: {
                         lib_name: "abc",
                       },
@@ -341,7 +352,7 @@ export default defineComponent({
                   );
                   websocketClient.send(
                     JSON.stringify({
-                      api_type: "startgame",
+                      api: "startgame",
                       param: {
                         nil: "nil",
                       },
@@ -364,14 +375,12 @@ export default defineComponent({
               } else if (data.info === "game_over") {
                 playerStateStore.changePlayerState(PlayerState.INROOM_WAITING);
               } else {
-                let info = data.info;
-                info = data.info.split(":");
-                if (info[0].trim() === "drawer") {
+                if (data.type === "current_drawer") {
                   playerStateStore.appendChat({
                     playerName: "广播工具人",
-                    text: `接下来由:${info[1]}来画`,
+                    text: `接下来由:${data.info}来画`,
                   });
-                  if (info[1].trim() === playerStateStore.playerInfo.id) {
+                  if (data.info === playerStateStore.playerInfo.id) {
                     playerStateStore.changePlayerState(
                       PlayerState.PLAYING_DRAWING
                     );
@@ -388,31 +397,25 @@ export default defineComponent({
                       PlayerState.PLAYING_ANSWERING
                     );
                   }
-                } else if (info[0].trim() === "draw") {
+                } else if (data.type === "next_word") {
                   playerStateStore.appendChat({
                     playerName: "广播工具人",
-                    text: `请画:${info[1]}!`,
+                    text: `请画:${data.info}!`,
                   });
+                }else if(data.type==="start in"){
+                  (function () {
+                      playerStateStore.appendChat({
+                        playerName: "广播工具人",
+                        text: `还有 ${data.info}s 开始游戏`,
+                      });
+                      if(parseInt(data.info)===1){
+                        playerStateStore.setTimer(playerStateStore.playerInRoom.roomDynamicState.drawTime)
+                        console.log(playerStateStore.playerInRoom.roomDynamicState.drawTime)
+                      }
+                  })();
                 }
               }
             })();
-            break;
-          case "inGameInfo":
-            (function () {
-              let data = datas.data;
-              let info = data.info.split(":");
-              if (/start in /.exec(info[0])) {
-                playerStateStore.appendChat({
-                  playerName: "广播工具人",
-                  text: `还有 ${info[1]}s 开始游戏`,
-                });
-                if(parseInt(info[1])===1){
-                  playerStateStore.setTimer(playerStateStore.playerInRoom.roomDynamicState.drawTime)
-                  console.log(playerStateStore.playerInRoom.roomDynamicState.drawTime)
-                }
-              }
-            })();
-
             break;
           case "chooseWordLib":
             playerStateStore.changeWordLib(datas.data.library_name);
@@ -432,7 +435,7 @@ export default defineComponent({
               let roomInfo = datas.data;
               if (roomInfo) {
                 playerStateStore.onPlayerEnterRoom(
-                  roomInfo
+                  makeRoomDetailInfo(roomInfo)
                 );
               }
               alert("修改成功！")
