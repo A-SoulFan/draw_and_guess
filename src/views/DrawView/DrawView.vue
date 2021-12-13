@@ -227,7 +227,7 @@ export default defineComponent({
       };
 
       websocketClient.onmessage = (evt) => {
-        let datas = JSON.parse(evt.data);
+        let datas = JSON.parse(evt.data.replace(/\d{18,}/g,(v:any)=>`"${v}"`));
         console.log(datas)
         //连接建立
         switch (datas.api) {
@@ -385,6 +385,7 @@ export default defineComponent({
             (function () {
               let roomInfo = datas.data.user_info as PlayerInfo;
               if (roomInfo) {
+                console.log(roomInfo)
                 playerStateStore.onInRoomPlayerStateChanged(roomInfo);
                 if (
                   playerStateStore.isAllPlayerReady() &&

@@ -61,6 +61,8 @@ const usePlayerStateStore = defineStore({
       })
     },
     onInRoomPlayerStateChanged(user_info: PlayerInfo) {
+      console.log(user_info)
+      console.log(this.playerInRoom.roomDynamicState.users)
       const user = this.playerInRoom.roomDynamicState.users.find(
         (p) => p.id === user_info.id
       );
