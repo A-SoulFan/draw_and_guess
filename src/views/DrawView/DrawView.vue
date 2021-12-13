@@ -304,7 +304,6 @@ export default defineComponent({
               return;
             }
             let roomInfo = datas.data;
-
             if (roomInfo) {
               roomInfoStore.updateAllState(
                   roomInfo.map((v: RespondRawInfo) => {
@@ -411,9 +410,14 @@ export default defineComponent({
         case "info_update":
           (function () {
             let data = datas.data;
-            if (Array.isArray(data)) {
+            if (Object.hasOwnProperty.call(data,"answer")) {
+              playerStateStore.appendChat({
+                    playerName: "广播工具人",
+                    text: `正确答案是 ${data.answer}!`
+                  }
+              );
               playerStateStore.appendChat(
-                  data.map((v) => ({
+                  data.result.map((v:any) => ({
                     playerName: v.user_name,
                     text: v.guess_word==='nil'?"什么也没猜":`猜了${v.guess_word}`
                   }))

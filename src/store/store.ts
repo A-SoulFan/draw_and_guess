@@ -85,9 +85,9 @@ const usePlayerStateStore = defineStore({
     },
     appendChat(e: ChatInfo | Array<ChatInfo>) {
       if (Array.isArray(e)) {
-        this.playerInRoomChatArray.push(...e);
+        this.playerInRoomChatArray=[...this.playerInRoomChatArray,...e];
       } else {
-        this.playerInRoomChatArray.push(e);
+        this.playerInRoomChatArray=[...this.playerInRoomChatArray,e];
       }
     },
     changeWordLib(e: string) {

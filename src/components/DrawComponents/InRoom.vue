@@ -131,7 +131,7 @@ export default defineComponent({
   },
   setup(props, context) {
     const playerStateStore = usePlayerStateStore();
-    const { playerInRoomChatArray,playerInRoom } = storeToRefs(usePlayerStateStore());
+    let { playerInRoomChatArray,playerInRoom } = storeToRefs(usePlayerStateStore());
     let roomNameInput = ref(playerInRoom.value.roomBaseInfo.roomName);
     let maxUserInput = ref(playerInRoom.value.roomBaseInfo.maxUsers);
     let roundInput = ref(playerInRoom.value.roomDynamicState.round);
@@ -151,6 +151,7 @@ export default defineComponent({
     onMounted(function () {
       const chatElement = document.getElementById("chatBox") as any;
       watch(playerInRoomChatArray, (now) => {
+        console.log(chatElement.scrollHeight)
         chatElement.scrollTop = chatElement.scrollHeight;
       });
     });
