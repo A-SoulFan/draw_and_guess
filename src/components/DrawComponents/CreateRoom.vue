@@ -6,7 +6,7 @@
     </div>
     <div class="maxUser">
       <img src="../../assets/Draw/maxuser.png" />
-      <input type="text" v-model="maxUserInput" /> /20
+      <input type="text" v-model="maxUserInput" /> /10
     </div>
     <div class="drawTime rowCenter">
       <img src="../../assets/Draw/round.png" />
@@ -56,7 +56,7 @@ export default defineComponent({
   name: "createRoom",
   emits: ["changeState", "onCreateBtnClicked"],
   setup(props, context) {
-    let roomNameInput = ref("一个魂儿们，欢迎来玩呀~");
+    let roomNameInput = ref("一个魂儿们欢迎来玩呀~");
     let maxUserInput = ref(10);
     let roundInput = ref(3);
     let roomTypeInput = ref(0);
@@ -65,6 +65,14 @@ export default defineComponent({
       context.emit("changeState");
     };
     const createBtnClick = function (): void {
+      if(roomNameInput.value.length>10){
+        alert("房间名过长，请限制在10个字符以内。")
+        return;
+      }
+      if(maxUserInput.value>10){
+        alert("最多人数不能超过限制！")
+        return;
+      }
       let requestRawInfo = {
         room_name: roomNameInput.value,
         max_users: maxUserInput.value,
@@ -72,6 +80,7 @@ export default defineComponent({
         draw_time: drawTimeInput.value,
         privacy: (roomTypeInput.value===0?true:false)
       } as RequestRawInfo;
+
       context.emit("onCreateBtnClicked", requestRawInfo);
     };
     return {

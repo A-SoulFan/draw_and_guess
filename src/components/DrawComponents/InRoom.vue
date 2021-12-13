@@ -70,7 +70,7 @@
       </div>
       <div class="maxUser">
         <img src="../../assets/Draw/maxuser.png" />
-        <input type="text" v-model="maxUserInput" :disabled="playerStateStore.playerInfo.id!==playerStateStore.playerInRoom.roomBaseInfo.onwerId"/> /20
+        <input type="text" v-model="maxUserInput" :disabled="playerStateStore.playerInfo.id!==playerStateStore.playerInRoom.roomBaseInfo.onwerId"/> /10
       </div>
       <div class="drawTime rowCenter">
         <img src="../../assets/Draw/round.png" />
@@ -137,6 +137,16 @@ export default defineComponent({
     let roundInput = ref(playerInRoom.value.roomDynamicState.round);
     let roomTypeInput = ref(playerInRoom.value.roomDynamicState.privacy);
     let drawTimeInput = ref(playerInRoom.value.roomDynamicState.drawTime);
+    watch(playerInRoom,now=>{
+      if(JSON.stringify(now)==="{}"){
+        return;
+      }
+      roomNameInput.value = now.roomBaseInfo.roomName;
+      maxUserInput.value = now.roomBaseInfo.maxUsers;
+      roundInput.value = now.roomDynamicState.round;
+      roomTypeInput.value = now.roomDynamicState.privacy;
+      drawTimeInput.value = now.roomDynamicState.drawTime;
+    })
 
     onMounted(function () {
       const chatElement = document.getElementById("chatBox") as any;

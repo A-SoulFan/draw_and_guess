@@ -86,7 +86,8 @@ export default defineComponent({
     let intervalLoopId = null;
     let leftCurrentView = "controlBar";
     let rightCurrentView = "roomList";
-    const websocketClient = new WebSocket("ws://localhost:1001");
+    let websocketClient = null as any;
+    let counter=0;
     const playerStateStore = usePlayerStateStore();
     const roomInfoStore = useRoomInfoStore();
     const changeSettingConpShowState = () => {
@@ -110,7 +111,6 @@ export default defineComponent({
         })
       );
     };
-    let counter=0;
     const login=function(){
       if(counter===0){
         counter=1;
@@ -133,7 +133,7 @@ export default defineComponent({
           }else{
             let token=res.data.token
             document.cookie=`asoulFanToken=${token}`
-            websocketClient.send(`asoulFanToken=${token}`);
+            checkToken()
           }
         })
       }else{
@@ -218,297 +218,320 @@ export default defineComponent({
         })
       );
     };
-    onMounted((): void => {
-      websocketClient.onopen = () => {
-        let token=getToken(document.cookie)
-        if(token){
-          websocketClient.send(`asoulFanToken=${token}`);
-        }
-      };
 
-      websocketClient.onmessage = (evt) => {
-        let datas = JSON.parse(evt.data.replace(/\d{18,}/g,(v:any)=>`"${v}"`));
-        console.log(datas)
-        //连接建立
-        switch (datas.api) {
-          case "connect":
-            intervalLoopId = setInterval(() => {
-              if (playerStateStore.playerState !== PlayerState.HANGING) {
-                return;
-              }
-              websocketClient.send('{"api": "getallrooms"}');
-            }, 10000);
-            playerStateStore.changePlayerState(PlayerState.HANGING);
-            (function () {
-              let rawInfo = datas.data;
-              if (rawInfo.user_info) {
-                playerStateStore.updatePlayerInfo(
+    //private:
+    const websocketOnMessage= (evt:any) => {
+      console.log(evt.data)
+      let datas = JSON.parse(evt.data.replace(/"*\d{18,}"*/g,(v:any)=>`"${v.replace(/"*/g,'')}"`));
+      //console.log(datas+'222')
+      //连接建立
+      switch (datas.api) {
+        case "connect":
+          intervalLoopId = setInterval(() => {
+            if (playerStateStore.playerState !== PlayerState.HANGING) {
+              return;
+            }
+            websocketClient.send('{"api": "getallrooms"}');
+          }, 10000);
+          playerStateStore.changePlayerState(PlayerState.HANGING);
+          (function () {
+            let rawInfo = datas.data;
+            if (rawInfo.user_info) {
+              playerStateStore.updatePlayerInfo(
                   rawInfo.user_info as PlayerInfo
-                );
-              }
-              if (rawInfo.room_info?.rooms_info) {
-                roomInfoStore.updateAllState(
+              );
+            }
+            if (rawInfo.room_info?.rooms_info) {
+              roomInfoStore.updateAllState(
                   rawInfo.room_info.rooms_info.map((v: RespondRawInfo) => {
                     return makeRoomDetailInfo(v);
                   })
-                );
-              }
-            })();
-            break;
+              );
+            }
+          })();
+          break;
           //获取房间||系统主动更新房间
-          case "getAllRooms":
-            (function () {
-              if (playerStateStore.playerState !== PlayerState.HANGING) {
-                return;
-              }
-              let roomInfo = datas.data.rooms_info;
+        case "getAllRooms":
+          (function () {
+            if (playerStateStore.playerState !== PlayerState.HANGING) {
+              return;
+            }
+            let roomInfo = datas.data.rooms_info;
 
-              if (roomInfo) {
-                roomInfoStore.updateAllState(
+            if (roomInfo) {
+              roomInfoStore.updateAllState(
                   roomInfo.map((v: RespondRawInfo) => {
                     return makeRoomDetailInfo(v);
                   })
-                );
-              }
-            })();
-            break;
-          case "roomUpdate":
-            (function () {
-              if (playerStateStore.playerState !== PlayerState.HANGING) {
-                return;
-              }
-              let roomInfo = datas.data;
+              );
+            }
+          })();
+          break;
+        case "roomUpdate":
+          (function () {
+            if (playerStateStore.playerState !== PlayerState.HANGING) {
+              return;
+            }
+            let roomInfo = datas.data;
 
-              if (roomInfo) {
-                roomInfoStore.updateAllState(
+            if (roomInfo) {
+              roomInfoStore.updateAllState(
                   roomInfo.map((v: RespondRawInfo) => {
                     return makeRoomDetailInfo(v);
                   })
-                );
-              }
-            })();
-            break;
-          case "rooms_update":
-            (function () {
-              if (playerStateStore.playerState !== PlayerState.HANGING) {
-                return;
-              }
-              let roomInfo = datas.data;
-              if (roomInfo) {
-                roomInfoStore.updateAllState(
+              );
+            }
+          })();
+          break;
+        case "rooms_update":
+          (function () {
+            if (playerStateStore.playerState !== PlayerState.HANGING) {
+              return;
+            }
+            let roomInfo = datas.data;
+            if (roomInfo) {
+              roomInfoStore.updateAllState(
                   roomInfo.map((v: RespondRawInfo) => {
                     return makeRoomDetailInfo(v);
                   })
-                );
-              }
-            })();
-            break;
-          case "AllRoomUpdates":
-            (function () {
-              if (playerStateStore.playerState !== PlayerState.HANGING) {
-                return;
-              }
-              let roomInfo = datas.data;
+              );
+            }
+          })();
+          break;
+        case "AllRoomUpdates":
+          (function () {
+            if (playerStateStore.playerState !== PlayerState.HANGING) {
+              return;
+            }
+            let roomInfo = datas.data;
 
-              if (roomInfo) {
-                roomInfoStore.updateAllState(
+            if (roomInfo) {
+              roomInfoStore.updateAllState(
                   roomInfo.map((v: RespondRawInfo) => {
                     return makeRoomDetailInfo(v);
                   })
-                );
-              }
-            })();
-            break;
+              );
+            }
+          })();
+          break;
           //创建房间
-          case "makeNewRoom":
-            (function () {
-              let roomInfo = datas.data;
-              if (roomInfo) {
-                roomInfo.users = [playerStateStore.playerInfo];
-                roomInfo.owner_id = playerStateStore.playerInfo.id;
-                playerStateStore.onPlayerEnterRoom(
+        case "makeNewRoom":
+          (function () {
+            let roomInfo = datas.data;
+            if (roomInfo) {
+              roomInfo.users = [playerStateStore.playerInfo];
+              roomInfo.owner_id = playerStateStore.playerInfo.id;
+              playerStateStore.onPlayerEnterRoom(
                   makeRoomDetailInfo(roomInfo)
-                );
-                playerStateStore.changePlayerState(PlayerState.INROOM_WAITING);
-                console.log(playerStateStore.playerInRoom);
-              }
-            })();
-            break;
+              );
+              playerStateStore.changePlayerState(PlayerState.INROOM_WAITING);
+              console.log(playerStateStore.playerInRoom);
+            }
+          })();
+          break;
           //加入房间
-          case "joinRoom":
-            (function () {
-              let roomInfo = datas.data;
-              if (roomInfo) {
-                playerStateStore.changePlayerState(PlayerState.INROOM_WAITING);
-                playerStateStore.onPlayerEnterRoom(
+        case "joinRoom":
+          (function () {
+            let roomInfo = datas.data;
+            if (roomInfo) {
+              playerStateStore.changePlayerState(PlayerState.INROOM_WAITING);
+              playerStateStore.onPlayerEnterRoom(
                   makeRoomDetailInfo(roomInfo)
-                );
-              }
-            })();
-            break;
+              );
+            }
+          })();
+          break;
           //更新房间内信息
-          case "inRoomInfoUpdate":
-            (function () {
-              let roomInfo = datas.data;
-              if (roomInfo) {
-                playerStateStore.onPlayerEnterRoom(
+        case "inRoomInfoUpdate":
+          (function () {
+            let roomInfo = datas.data;
+            if (roomInfo) {
+              playerStateStore.onPlayerEnterRoom(
                   makeRoomDetailInfo(roomInfo)
-                );
-              }
-            })();
-            break;
+              );
+            }
+          })();
+          break;
           //退出房间
-          case "gamer_exit":
-            (function () {
-              let roomInfo = datas.data;
-              if (roomInfo) {
-                playerStateStore.onPlayerEnterRoom(
+        case "gamer_exit":
+          (function () {
+            let roomInfo = datas.data;
+            if (roomInfo) {
+              playerStateStore.onPlayerEnterRoom(
                   makeRoomDetailInfo(roomInfo)
-                );
-              }
-            })();
-            break;
-          case "exitRoom":
-            (function () {
-              let roomInfo = datas.data.rooms_info;
-              if (roomInfo) {
-                roomInfoStore.updateAllState(
+              );
+            }
+          })();
+          break;
+        case "exitRoom":
+          (function () {
+            let roomInfo = datas.data.rooms_info;
+            if (roomInfo) {
+              roomInfoStore.updateAllState(
                   roomInfo.map((v: RespondRawInfo) => {
                     return makeRoomDetailInfo(v);
                   })
-                );
-              }
-            })();
-            break;
+              );
+            }
+          })();
+          break;
           //准备
-          case "user_ready":
-            (function () {
-              let roomInfo = datas.data.user_info as PlayerInfo;
-              if (roomInfo) {
-                console.log(roomInfo)
-                playerStateStore.onInRoomPlayerStateChanged(roomInfo);
-                if (
+        case "user_ready":
+          (function () {
+            let roomInfo = datas.data.user_info as PlayerInfo;
+            if (roomInfo) {
+              console.log(roomInfo)
+              playerStateStore.onInRoomPlayerStateChanged(roomInfo);
+              if (
                   playerStateStore.isAllPlayerReady() &&
                   playerStateStore.isRoomOwner() &&
                   playerStateStore.playerInRoom.roomDynamicState.users.length >
-                    1
-                ) {
-                  websocketClient.send(
+                  1
+              ) {
+                websocketClient.send(
                     JSON.stringify({
                       api: "choosewordlib",
                       param: {
                         lib_name: "abc",
                       },
                     })
-                  );
-                  websocketClient.send(
+                );
+                websocketClient.send(
                     JSON.stringify({
                       api: "startgame",
                       param: {
                         nil: "nil",
                       },
                     })
-                  );
-                }
+                );
               }
-            })();
-            break;
-          case "info_update":
-            (function () {
-              let data = datas.data;
-              if (Array.isArray(data)) {
-                playerStateStore.appendChat(
+            }
+          })();
+          break;
+        case "info_update":
+          (function () {
+            let data = datas.data;
+            if (Array.isArray(data)) {
+              playerStateStore.appendChat(
                   data.map((v) => ({
-                    playerName: v.userName,
+                    playerName: v.user_name,
                     text: v.guess_word==='nil'?"什么也没猜":`猜了${v.guess_word}`
                   }))
-                );
-              } else if (data.type === "game_over") {
-                playerStateStore.changePlayerState(PlayerState.INROOM_WAITING);
-                playerStateStore.onGameOver()
-              } else {
-                if (data.type === "current_drawer") {
-                  playerStateStore.appendChat({
-                    playerName: "广播工具人",
-                    text: `接下来由:${data.info}来画`,
-                  });
-                  if (data.info === playerStateStore.playerInfo.id) {
-                    playerStateStore.changePlayerState(
-                      PlayerState.PLAYING_DRAWING
-                    );
-                  } else if (
-                    playerStateStore.playerState === PlayerState.PLAYING_DRAWING
-                  ) {
-                    playerStateStore.changePlayerState(
-                      PlayerState.PLAYING_ANSWERING
-                    );
-                  } else if (
-                    playerStateStore.playerState === PlayerState.INROOM_READY
-                  ) {
-                    playerStateStore.changePlayerState(
-                      PlayerState.PLAYING_ANSWERING
-                    );
-                  }
-                } else if (data.type === "next_word") {
-                  playerStateStore.appendChat({
-                    playerName: "广播工具人",
-                    text: `请画:${data.info}!`,
-                  });
-                }else if(data.type==="start in"){
-                  (function () {
-                      playerStateStore.appendChat({
-                        playerName: "广播工具人",
-                        text: `还有 ${data.info}s 开始游戏`,
-                      });
-                      if(parseInt(data.info)===1){
-                        playerStateStore.setTimer(playerStateStore.playerInRoom.roomDynamicState.drawTime)
-                        console.log(playerStateStore.playerInRoom.roomDynamicState.drawTime)
-                      }
-                  })();
-                }
-              }
-            })();
-            break;
-          case "chooseWordLib":
-            playerStateStore.changeWordLib(datas.data.library_name);
-            break;
-          case "transfer":
-            playerStateStore.changePath(datas.data.pathInfo);
-            break;
-          case "set_guess":
-            playerStateStore.appendChat({
-              playerName: "广播工具人",
-              text: `你现在猜了:${datas.data}`,
-            });
-            break;
-          case "updateRoom":
-            (function () {
-              let roomInfo = datas.data;
-              if (roomInfo) {
-                playerStateStore.onPlayerEnterRoom(
-                  makeRoomDetailInfo(roomInfo)
-                );
-              }
-              alert("修改成功！")
-            })();
-            break;
-          default:
-            if(datas.error===25){
-              alert("人数不足！")
-              playerStateStore.changePlayerState(
-                PlayerState.INROOM_WAITING
-              )
+              );
+            } else if (data.type === "game_over") {
+              playerStateStore.changePlayerState(PlayerState.INROOM_WAITING);
               playerStateStore.onGameOver()
-
-            }else if(datas.error===-1){
-              alert('登录验证失败！请登录后重试。')
-            }else{
-              throw new Error(JSON.stringify(datas));
+            } else {
+              if (data.type === "current_drawer") {
+                playerStateStore.appendChat({
+                  playerName: "广播工具人",
+                  text: `接下来由:${data.info}来画`,
+                });
+                if (data.info === playerStateStore.playerInfo.id) {
+                  playerStateStore.changePlayerState(
+                      PlayerState.PLAYING_DRAWING
+                  );
+                } else if (
+                    playerStateStore.playerState === PlayerState.PLAYING_DRAWING
+                ) {
+                  playerStateStore.changePlayerState(
+                      PlayerState.PLAYING_ANSWERING
+                  );
+                } else if (
+                    playerStateStore.playerState === PlayerState.INROOM_READY
+                ) {
+                  playerStateStore.changePlayerState(
+                      PlayerState.PLAYING_ANSWERING
+                  );
+                }
+              } else if (data.type === "next_word") {
+                playerStateStore.appendChat({
+                  playerName: "广播工具人",
+                  text: `请画:${data.info}!`,
+                });
+              }else if(data.type==="start in"){
+                (function () {
+                  playerStateStore.appendChat({
+                    playerName: "广播工具人",
+                    text: `还有 ${data.info}s 开始游戏`,
+                  });
+                  if(parseInt(data.info)===1){
+                    playerStateStore.setTimer(playerStateStore.playerInRoom.roomDynamicState.drawTime)
+                    console.log(playerStateStore.playerInRoom.roomDynamicState.drawTime)
+                  }
+                })();
+              }
+            }
+          })();
+          break;
+        case "chooseWordLib":
+          playerStateStore.changeWordLib(datas.data.library_name);
+          break;
+        case "transfer":
+          playerStateStore.changePath(datas.data.pathInfo);
+          break;
+        case "set_guess":
+          playerStateStore.appendChat({
+            playerName: "广播工具人",
+            text: `你现在猜了:${datas.data}`,
+          });
+          break;
+        case "updateRoom":
+          (function () {
+            let roomInfo = datas.data;
+            if (roomInfo) {
+              playerStateStore.onPlayerEnterRoom(
+                  makeRoomDetailInfo(roomInfo)
+              );
+            }
+            if(playerStateStore.isRoomOwner()){
+              alert("修改成功！")
             }
 
+          })();
+          break;
+        default:
+          if(datas.error===25){
+            alert("人数不足！")
+            playerStateStore.changePlayerState(
+                PlayerState.INROOM_WAITING
+            )
+            playerStateStore.onGameOver()
+
+          }else if(datas.error===-1){
+            alert('登录验证失败！请登录后重试。')
+          }else{
+            throw new Error(JSON.stringify(datas));
+          }
+
+      }
+    };
+    const createWebsocket = function(){
+      websocketClient=new WebSocket("ws://localhost:1001");
+      websocketClient.onopen = () => {
+        let token=getToken(document.cookie)
+        if(token){
+          websocketClient.send(`asoulFanToken=${token}`);
         }
       };
-    });
+      websocketClient.onmessage = websocketOnMessage
+    }
+    const checkToken = function(){
+      let token=getToken(document.cookie)
+      if(token){
+        if(websocketClient===null){
+          createWebsocket()
+        }else if(websocketClient.readyState===1){
+          websocketClient.send(`asoulFanToken=${token}`);
+        }else{
+          websocketClient.close()
+          createWebsocket()
+        }
+      }
+    }
+    onMounted(()=>{
+      checkToken()
+    })
     return {
       websocketClient,
       intervalLoopId,

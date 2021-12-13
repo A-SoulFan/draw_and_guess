@@ -12,9 +12,9 @@ const makeRoomBaseInfo = function (
   e: RespondRawInfo | RequestRawInfo
 ): RoomBaseInfo {
   return {
-    roomName: e.room_name ?? "一个魂儿们，欢迎来玩呀~",
+    roomName: e.room_name ?? "一个魂儿们一起来玩吧！",
     roomId: e.room_id ?? "-1",
-    maxUsers: e.max_users ?? "20",
+    maxUsers: e.max_users ?? "10",
     onwerId: e.owner_id ?? "-1",
   } as RoomBaseInfo;
 };
@@ -76,7 +76,6 @@ const getToken= function(cookie:string):string|null{
   const s = rawCookie.find(v=>{
     const p=v.split('=')
     return p[0].trim()==='asoulFanToken'
-
   })
   if(s){
     return s.trim().split("=")[1]

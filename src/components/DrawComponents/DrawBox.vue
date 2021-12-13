@@ -31,6 +31,10 @@
       </div>
       <canvas id="colorDisplayer" width="40" height="40"></canvas>
     </div>
+    <button class="delBtn"
+            @click="onDelbtnClick"
+            :disabled="playerStateStore.playerInfo.id!==playerStateStore.playerInRoom.roomBaseInfo.onwerId"
+    >清空</button>
   </div>
 </template>
 
@@ -52,7 +56,9 @@ export default defineComponent({
     let redColor=ref(0);
     let greenColor=ref(0);
     let blueColor=ref(0);
+    let canvas=null as any;
     let colorDisplayer=null as any;
+    let playerStateStore=usePlayerStateStore()
     const {timer} = storeToRefs(usePlayerStateStore())
     const { pathInfo, playerState } = storeToRefs(usePlayerStateStore());
 
@@ -79,24 +85,16 @@ export default defineComponent({
       colorDisplayer.fillRect(0,0,40,40);
     })
 
-    watch(pathInfo, (now) => {
-      if (playerState.value === PlayerState.PLAYING_ANSWERING) {
-        if (drawContext) {
-          console.log(now[0]);
-          penType.value = now[0][0];
-          drawContext.strokeStyle = now[0][1];
-          drawContext.lineWidth = now[0][2];
-          if (now.length === 1) return;
-          drawContext.beginPath();
-          drawContext.moveTo(now[1][0], now[1][1]);
-          now.slice(2).forEach((v: any) => {
-            drawContext.lineTo(v[0], v[1]);
-            drawContext.stroke();
-          });
-          drawContext.closePath();
-        }
+
+    const onDelbtnClick = function(e:any){
+      if (playerState.value !== PlayerState.PLAYING_DRAWING) {
+        return;
       }
-    });
+      if(drawContext){
+        drawContext.clearRect(0,0,canvas.width,canvas.height);
+      }
+      context.emit("drawOnePath", [-1]);
+    }
     const onMouseDown = function (e: any) {
       if (playerState.value !== PlayerState.PLAYING_DRAWING) {
         return;
@@ -139,7 +137,6 @@ export default defineComponent({
         mouseTrace[0][1] = rgbToHex(redColor.value,greenColor.value,blueColor.value);
         mouseTrace[0][2] = 3;
       }
-      console.log(mouseTrace[0]);
       context.emit("drawOnePath", mouseTrace);
     };
     const onPenChose = function () {
@@ -159,7 +156,7 @@ export default defineComponent({
     };
     onMounted(() => {
       colorDisplayer = (document.getElementById('colorDisplayer') as HTMLCanvasElement).getContext("2d");
-      const canvas: any = document.getElementById("drawCanvasBoard");
+      canvas = document.getElementById("drawCanvasBoard");
       const drawRoom: any = document.getElementById("drawRoomMain");
       canvas.width = drawRoom.offsetWidth;
       canvas.height = drawRoom.offsetHeight;
@@ -170,6 +167,27 @@ export default defineComponent({
           canvasContext.clearRect(0,0,canvas.width,canvas.height);
         }
       })
+      watch(pathInfo, (now) => {
+        if (playerState.value === PlayerState.PLAYING_ANSWERING) {
+          if (drawContext) {
+            if(now[0]===-1){
+              drawContext.clearRect(0,0,canvas.width,canvas.height);
+              return;
+            }
+            penType.value = now[0][0];
+            drawContext.strokeStyle = now[0][1];
+            drawContext.lineWidth = now[0][2];
+            if (now.length === 1) return;
+            drawContext.beginPath();
+            drawContext.moveTo(now[1][0], now[1][1]);
+            now.slice(2).forEach((v: any) => {
+              drawContext.lineTo(v[0], v[1]);
+              drawContext.stroke();
+            });
+            drawContext.closePath();
+          }
+        }
+      });
     });
     return {
       onMouseMove,
@@ -183,7 +201,9 @@ export default defineComponent({
       redColor,
       greenColor,
       blueColor,
-      timer
+      timer,
+      onDelbtnClick,
+      playerStateStore
     };
   },
 });
@@ -238,5 +258,11 @@ export default defineComponent({
     margin-left: 4px;
     font-size:1.2rem;
   }
+}
+.delBtn{
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  border-radius: 8px;
 }
 </style>
