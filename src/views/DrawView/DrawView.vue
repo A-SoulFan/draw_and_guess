@@ -511,6 +511,7 @@ export default defineComponent({
       }
     };
     const createWebsocket = function(){
+      //websocketClient=new WebSocket("ws://52.130.177.41:1001");
       websocketClient=new WebSocket("ws://localhost:1001");
       websocketClient.onopen = () => {
         let token=getToken(document.cookie)
@@ -533,9 +534,9 @@ export default defineComponent({
         }
       }
     }
-    onMounted(()=>{
-      checkToken()
-    })
+    // onMounted(()=>{
+    //   checkToken()
+    // })
     return {
       websocketClient,
       intervalLoopId,
