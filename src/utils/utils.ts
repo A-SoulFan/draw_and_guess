@@ -26,7 +26,7 @@ const makeRoomDynamicState = function (
     round: e.round ?? 3,
     drawTime: e.draw_time ?? 60,
     userInRoom: e.user_in_room ?? 0,
-    privacy: e.privacy ?? false,
+    privacy: e.privacy??false,
     users:
       e.users?.map((v: PlayerRawInfo) => makePlayerInfo(v)) ??
       ([] as Array<PlayerInfo>),
@@ -51,36 +51,40 @@ const makePlayerInfo = function (e: PlayerRawInfo): PlayerInfo {
     ready: e.ready ?? false,
   } as PlayerInfo;
 };
-const demToHex = function (sc: number): string {
-  const HEX = ["A", "B", "C", "D", "E", "F"];
-  let res = "";
-  while (sc) {
-    const nowbit = sc % 16;
-    res = (nowbit >= 10 ? HEX[nowbit - 10] : `${nowbit}`) + res;
-    sc = Math.floor(sc / 16);
+const demToHex = function (sc:number):string{
+  const HEX=['A','B','C','D','E','F']
+  let res=''
+  while(sc){
+    const nowbit=sc%16
+    res=(nowbit>=10?HEX[nowbit-10]:`${nowbit}`)+res
+    sc=Math.floor(sc/16);
   }
-  if (res === "") {
-    res = "00";
-  } else if (res.length === 1) {
-    res = "0" + res;
+  if(res===''){
+    res='00'
   }
-  return res;
-};
-const rgbToHex = function (r: number, g: number, b: number): string {
-  return "#" + demToHex(r) + demToHex(g) + demToHex(b);
-};
-const getToken = function (cookie: string): string | null {
-  const rawCookie = cookie.split(";");
-  const s = rawCookie.find((v) => {
-    const p = v.split("=");
-    return p[0].trim() === "asoulFanToken";
-  });
-  if (s) {
-    return s.trim().split("=")[1];
-  } else {
-    return null;
+  else if(res.length===1){
+    res='0'+res
   }
-};
+  return res
+
+}
+const rgbToHex = function (r:number,g:number,b:number):string{
+  return '#'+demToHex(r)+demToHex(g)+demToHex(b);
+}
+const getToken= function(cookie:string):string|null{
+  const rawCookie=cookie.split(';')
+  const s = rawCookie.find(v=>{
+    const p=v.split('=')
+    return p[0].trim()==='asoulFanToken'
+
+  })
+  if(s){
+    return s.trim().split("=")[1]
+  }else{
+    return null
+  }
+
+}
 export {
   makeRoomBaseInfo,
   makeRoomDynamicState,
@@ -88,5 +92,5 @@ export {
   getUserString,
   makePlayerInfo,
   rgbToHex,
-  getToken,
+  getToken
 };

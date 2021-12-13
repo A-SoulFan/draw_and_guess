@@ -19,23 +19,23 @@ const usePlayerStateStore = defineStore({
     playerInRoom: makeRoomDetailInfo({} as RequestRawInfo),
     playerInRoomChatArray: [] as Array<ChatInfo>,
     pathInfo: [] as any,
-    timer: 0,
-    timerId: null as any,
+    timer:0,
+    timerId: null as any
   }),
   getters: {
     getState: (state) => state.playerState,
   },
   actions: {
-    setTimer(tim: number) {
-      this.timer = tim;
-      this.timerId = setInterval(() => {
-        this.decTimer();
-        if (this.timer === 0) {
-          clearInterval(this.timerId);
+    setTimer(tim: number){
+      this.timer=tim
+      this.timerId=setInterval(()=>{
+        this.decTimer()
+        if(this.timer===0){
+          clearInterval(this.timerId)
         }
-      }, 1000);
+      },1000)
     },
-    decTimer() {
+    decTimer(){
       this.timer--;
     },
     updatePlayerInfo(newState: PlayerInfo) {
@@ -55,10 +55,10 @@ const usePlayerStateStore = defineStore({
     onPlayerEnterRoom(room: RoomDetailInfo) {
       this.playerInRoom = room;
     },
-    onGameOver() {
-      this.playerInRoom.roomDynamicState.users.forEach((v) => {
-        v.ready = false;
-      });
+    onGameOver(){
+      this.playerInRoom.roomDynamicState.users.forEach(v=>{
+        v.ready=false;
+      })
     },
     onInRoomPlayerStateChanged(user_info: PlayerInfo) {
       const user = this.playerInRoom.roomDynamicState.users.find(
