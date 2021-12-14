@@ -65,7 +65,7 @@ export default defineComponent({
       context.emit("changeState");
     };
     const createBtnClick = function (): void {
-      if(roomNameInput.value.length>10){
+      if(roomNameInput.value.length>20){
         alert("房间名过长，请限制在10个字符以内。")
         return;
       }
@@ -120,6 +120,9 @@ export default defineComponent({
   width: 90%;
   display: flex;
   align-items: center;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap
 }
 .roomName img {
   width: 10%;
