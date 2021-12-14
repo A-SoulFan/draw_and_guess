@@ -26,6 +26,12 @@ const usePlayerStateStore = defineStore({
     getState: (state) => state.playerState,
   },
   actions: {
+    clearTimer() {
+      if(this.timerId){
+        clearInterval((this.timerId))
+      }
+      this.timerId = 0
+    },
     setTimer(tim: number){
       this.timer=tim
       this.timerId=setInterval(()=>{

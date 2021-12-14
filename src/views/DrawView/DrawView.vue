@@ -371,6 +371,7 @@ export default defineComponent({
                     return makeRoomDetailInfo(v);
                   })
               );
+              playerStateStore.clearTimer()
             }
           })();
           break;
@@ -497,6 +498,7 @@ export default defineComponent({
         default:
           if(datas.error===25){
             alert("人数不足！")
+            playerStateStore.clearTimer()
             playerStateStore.changePlayerState(
                 PlayerState.INROOM_WAITING
             )
