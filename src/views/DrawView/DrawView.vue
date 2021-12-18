@@ -469,7 +469,7 @@ export default defineComponent({
             }
           })();
           break;
-        case "chooseWordLib":
+        case "choose_word_library":
           playerStateStore.changeWordLib(datas.data.library_name);
           break;
         case "transfer":
@@ -513,7 +513,7 @@ export default defineComponent({
       }
     };
     const createWebsocket = function(){
-      websocketClient=new WebSocket("ws://52.130.177.41:1001");
+      websocketClient=new WebSocket("ws://localhost:1001");
       //websocketClient=new WebSocket("ws://localhost:1001");
       websocketClient.onopen = () => {
         let token=getToken(document.cookie)

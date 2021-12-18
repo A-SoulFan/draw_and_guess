@@ -24,11 +24,12 @@
       @click="onEraserChose"
     />
     <div class="changeColor">
-      <div>
-        <input type="range" max="255" min="0" step="1" v-model="redColor">
-        <input type="range" max="255" min="0" step="1" v-model="greenColor">
-        <input type="range" max="255" min="0" step="1" v-model="blueColor">
-      </div>
+      <img src="../../assets/Draw/colorpan.png" width="0" id="colorimg">
+      <canvas id="colorChooser" width="90" height="40"
+              @mousemove="onColorMouseMove"
+              @mousedown="onColorMouseDown"
+              @mouseup="onColorMouseUp"
+      ></canvas>
       <canvas id="colorDisplayer" width="40" height="40"></canvas>
     </div>
     <button class="delBtn"
@@ -59,6 +60,9 @@ export default defineComponent({
     let canvas=null as any;
     let colorDisplayer=null as any;
     let playerStateStore=usePlayerStateStore()
+    let canvasWidth= 0;
+    let canvasHeight=0;
+    let colorChooser=null as any;
     const {timer} = storeToRefs(usePlayerStateStore())
     const { pathInfo, playerState } = storeToRefs(usePlayerStateStore());
 
@@ -101,7 +105,7 @@ export default defineComponent({
       }
       mouseTrace = [
         [penType.value, drawContext.strokeStyle, drawContext.lineWidth],
-        [e.offsetX, e.offsetY],
+        [e.offsetX/canvasWidth, e.offsetY/canvasHeight],
       ];
       drawFlag = true;
       if (penType.value === 0) {
@@ -119,7 +123,7 @@ export default defineComponent({
         return;
       }
       if (drawFlag) {
-        mouseTrace.push([e.offsetX, e.offsetY]);
+        mouseTrace.push([e.offsetX/canvasWidth, e.offsetY/canvasHeight]);
         drawContext.lineTo(e.offsetX, e.offsetY);
         drawContext.stroke();
       }
@@ -154,14 +158,52 @@ export default defineComponent({
       }
       penType.value = 1;
     };
+    let isDown=0;
+    const onColorMouseMove=function(e:any){
+      if(isDown===0){
+        return;
+      }
+      let x=e.offsetX
+      let y=e.offsetY
+      let color=colorChooser.getImageData(x,y,1,1)
+      redColor.value=color.data[0]
+      greenColor.value=color.data[1]
+      blueColor.value=color.data[2]
+    }
+    const onColorMouseUp=function(e:any){
+      let x=e.offsetX
+      let y=e.offsetY
+      let color=colorChooser.getImageData(x,y,1,1)
+      redColor.value=color.data[0]
+      greenColor.value=color.data[1]
+      blueColor.value=color.data[2]
+      isDown=0
+    }
+    const onColorMouseDown=function(e:any){
+      let x=e.offsetX
+      let y=e.offsetY
+      let color=colorChooser.getImageData(x,y,1,1)
+      redColor.value=color.data[0]
+      greenColor.value=color.data[1]
+      blueColor.value=color.data[2]
+      isDown=1
+    }
+
     onMounted(() => {
       colorDisplayer = (document.getElementById('colorDisplayer') as HTMLCanvasElement).getContext("2d");
       canvas = document.getElementById("drawCanvasBoard");
+      colorChooser=(document.getElementById("colorChooser") as HTMLCanvasElement).getContext("2d");
+      let colorimg:HTMLElement|null=document.getElementById("colorimg")
+      if(colorimg)colorimg.onload=()=>{colorChooser.drawImage(colorimg,0,0,90,40)}
+
       const drawRoom: any = document.getElementById("drawRoomMain");
       canvas.width = drawRoom.offsetWidth;
+      canvasWidth=canvas.width
       canvas.height = drawRoom.offsetHeight;
+      canvasHeight=canvas.height
       const canvasContext: any = canvas.getContext("2d");
       drawContext = canvasContext;
+
       watch(timer,(now,pre)=>{
         if(now>pre){
           canvasContext.clearRect(0,0,canvas.width,canvas.height);
@@ -179,9 +221,9 @@ export default defineComponent({
             drawContext.lineWidth = now[0][2];
             if (now.length === 1) return;
             drawContext.beginPath();
-            drawContext.moveTo(now[1][0], now[1][1]);
+            drawContext.moveTo(now[1][0]*canvasWidth, now[1][1]*canvasHeight);
             now.slice(2).forEach((v: any) => {
-              drawContext.lineTo(v[0], v[1]);
+              drawContext.lineTo(v[0]*canvasWidth, v[1]*canvasHeight);
               drawContext.stroke();
             });
             drawContext.closePath();
@@ -203,7 +245,13 @@ export default defineComponent({
       blueColor,
       timer,
       onDelbtnClick,
-      playerStateStore
+      playerStateStore,
+      canvasWidth,
+      canvasHeight,
+      colorChooser,
+      onColorMouseMove,
+      onColorMouseDown,
+      onColorMouseUp,
     };
   },
 });
@@ -218,14 +266,14 @@ export default defineComponent({
 }
 .pen {
   position: absolute;
-  width: 30px;
+  width: 3rem;
   left: 20px;
   bottom: -50px;
 }
 .eraser {
   position: absolute;
-  width: 30px;
-  left: 80px;
+  width: 3rem;
+  left: 7rem;
   bottom: -20px;
 }
 .drawToolActive {
@@ -240,13 +288,13 @@ export default defineComponent({
 .changeColor{
   position: absolute;
   width: 100px;
-  left: 120px;
+  left: 10rem;
   bottom: 0px;
   display: flex;
   justify-content: space-between;
 }
 .changeColor input{
-
+  width:10rem;
 }
 .timer{
   position: absolute;
