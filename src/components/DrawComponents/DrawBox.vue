@@ -10,6 +10,9 @@
       @mousemove="onMouseMove"
       @mousedown="onMouseDown"
       @mouseup="onMouseUp"
+      @touchstart="onTouchStart"
+      @touchmove="onTouchMove"
+      @touchend="onTouchEnd"
     ></canvas>
     <img
       src="../../assets/Draw/eraser.png"
@@ -63,6 +66,8 @@ export default defineComponent({
     let canvasWidth= 0;
     let canvasHeight=0;
     let colorChooser=null as any;
+    let offsetTopRoom=0
+    let offsetLeftRoom=0;
     const {timer} = storeToRefs(usePlayerStateStore())
     const { pathInfo, playerState } = storeToRefs(usePlayerStateStore());
 
@@ -188,7 +193,58 @@ export default defineComponent({
       blueColor.value=color.data[2]
       isDown=1
     }
+    const onTouchStart = function(e:any) {
+      e.preventDefault();
+      if (playerState.value !== PlayerState.PLAYING_DRAWING) {
+        return;
+      }
+      let x=e.targetTouches[0].pageX-offsetLeftRoom
+      let y=e.targetTouches[0].pageY-offsetTopRoom
 
+      mouseTrace = [
+        [penType.value, drawContext.strokeStyle, drawContext.lineWidth],
+        [x/canvasWidth, y/canvasHeight],
+      ];
+      drawFlag = true;
+      if (penType.value === 0) {
+        drawContext.strokeStyle = "#E6E6E6";
+        drawContext.lineWidth = 15;
+      } else {
+        drawContext.strokeStyle = rgbToHex(redColor.value,greenColor.value,blueColor.value);
+        drawContext.lineWidth = 3;
+      }
+      drawContext.beginPath();
+      drawContext.moveTo(x, y);
+    }
+    const onTouchMove = function(e:any){
+      e.preventDefault();
+      if (playerState.value !== PlayerState.PLAYING_DRAWING) {
+        return;
+      }
+      let x=e.targetTouches[0].pageX-offsetLeftRoom
+      let y=e.targetTouches[0].pageY-offsetTopRoom
+      if (drawFlag) {
+        mouseTrace.push([x/canvasWidth, y/canvasHeight]);
+        drawContext.lineTo(x, y);
+        drawContext.stroke();
+      }
+    }
+    const onTouchEnd = function(e:any){
+      e.preventDefault();
+      if (playerState.value !== PlayerState.PLAYING_DRAWING) {
+        return;
+      }
+      drawFlag = false;
+      drawContext.closePath();
+      if (penType.value === 0) {
+        mouseTrace[0][1] = "#E6E6E6";
+        mouseTrace[0][2] = 15;
+      } else {
+        mouseTrace[0][1] = rgbToHex(redColor.value,greenColor.value,blueColor.value);
+        mouseTrace[0][2] = 3;
+      }
+      context.emit("drawOnePath", mouseTrace);
+    }
     onMounted(() => {
       colorDisplayer = (document.getElementById('colorDisplayer') as HTMLCanvasElement).getContext("2d");
       canvas = document.getElementById("drawCanvasBoard");
@@ -203,7 +259,13 @@ export default defineComponent({
       canvasHeight=canvas.height
       const canvasContext: any = canvas.getContext("2d");
       drawContext = canvasContext;
-
+      let tempRef=document.getElementById("drawRoomMain") as HTMLElement
+      offsetTopRoom=tempRef.offsetTop
+          +(tempRef.parentElement as HTMLElement).offsetTop
+          +((tempRef.parentElement as HTMLElement).parentElement as HTMLElement).offsetTop
+      offsetLeftRoom=tempRef.offsetLeft
+          +(tempRef.parentElement as HTMLElement).offsetLeft
+          +((tempRef.parentElement as HTMLElement).parentElement as HTMLElement).offsetLeft
       watch(timer,(now,pre)=>{
         if(now>pre){
           canvasContext.clearRect(0,0,canvas.width,canvas.height);
@@ -252,6 +314,11 @@ export default defineComponent({
       onColorMouseMove,
       onColorMouseDown,
       onColorMouseUp,
+      onTouchStart,
+      onTouchMove,
+      onTouchEnd,
+      offsetTopRoom,
+      offsetLeftRoom,
     };
   },
 });

@@ -222,7 +222,12 @@ export default defineComponent({
     //private:
     const websocketOnMessage= (evt:any) => {
       console.log(evt.data)
-      let datas = JSON.parse(evt.data.replace(/"*\d{18,}"*/g,(v:any)=>`"${v.replace(/"*/g,'')}"`));
+      let datas = null as any;
+      try{
+        datas=JSON.parse(evt.data)
+      }catch{
+        datas=JSON.parse(evt.data.replace(/"*\d*\.*\d{18,}"*/g,(v:any)=>`"${v.replace(/"*/g,'')}"`));
+      }
       //console.log(datas+'222')
       //连接建立
       switch (datas.api) {
@@ -285,15 +290,16 @@ export default defineComponent({
           break;
         case "rooms_update":
           (function () {
-            if (playerStateStore.playerState !== PlayerState.HANGING) {
-              return;
-            }
             let roomInfo = datas.data;
             if (roomInfo) {
               roomInfoStore.updateAllState(
                   roomInfo.map((v: RespondRawInfo) => {
                     return makeRoomDetailInfo(v);
                   })
+              );
+            }else{
+              roomInfoStore.updateAllState(
+                    []
               );
             }
           })();
@@ -695,6 +701,7 @@ export default defineComponent({
   background-color:rgba(230,230,230,.5);
   margin-left:3%;
   margin-right:3%;
+  font-size: 1.5rem;
 }
 .login button{
   width:50%;

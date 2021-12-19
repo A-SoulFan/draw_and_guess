@@ -118,7 +118,7 @@ const useRoomInfoStore = defineStore({
   },
   actions: {
     updateAllState(newStateArray: Array<RoomDetailInfo>) {
-      this.roomList = newStateArray;
+      this.roomList = [...newStateArray];
     },
   },
 });
