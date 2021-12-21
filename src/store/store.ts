@@ -5,6 +5,7 @@ import {
   RequestRawInfo,
   RoomDetailInfo,
   ChatInfo,
+  GlobalSettings
 } from "@/types/types";
 import { makeRoomDetailInfo } from "@/utils/utils";
 const usePlayerStateStore = defineStore({
@@ -123,4 +124,34 @@ const useRoomInfoStore = defineStore({
   },
 });
 
-export { usePlayerStateStore, useRoomInfoStore };
+const useGlobalSettings = defineStore({
+  id:"globalSettings",
+  state:()=>({
+    settings:<GlobalSettings>{
+      iceSkating:true,
+      volume:100,
+      volumeSE:true,
+      muteAll:false,
+      pointerType:0
+    },
+    environment:{
+      isMobile:false
+    }
+
+  }),
+  actions:{
+    changeGlobalSettings(newSettings:GlobalSettings){
+      Object.keys(newSettings).forEach((v)=>{
+        if (this.settings[v as keyof GlobalSettings]) {
+          this.settings[v as keyof GlobalSettings]=newSettings[v as keyof GlobalSettings]
+        }
+      })
+    },
+    initEnvironment(isMobile:boolean){
+      this.environment.isMobile = isMobile
+    }
+  }
+
+})
+
+export { usePlayerStateStore, useRoomInfoStore ,useGlobalSettings};

@@ -5,19 +5,19 @@
     </div>
     <div class="iceSkating">
       随机溜冰
-      <input type="radio" />默认开启 <input type="radio" />默认关闭
+      <input type="radio" value="true" v-model="settings.iceSkating"/>默认开启 <input type="radio" value="false" v-model="settings.iceSkating"/>默认关闭
     </div>
     <div class="musicVolume">
       游戏内音量
-      <input type="range" />
+      <input type="range" v-model="settings.volume"/>
     </div>
     <div class="effectVolume">
       游戏音效
-      <input type="radio" />默认开启 <input type="radio" />默认关闭
+      <input type="radio" value="true" v-model="settings.volumeSE"/>默认开启 <input type="radio" value="false" v-model="settings.volumeSE"/>默认关闭
     </div>
     <div class="talkingBox">
       聊天框
-      <input type="radio" />全体禁言
+      <input type="radio" value="true" v-model="settings.muteAll"/>全体禁言
     </div>
 
     <div class="patternChoosing">
@@ -26,14 +26,16 @@
         <div class="patternMouse">
           <img src="../../assets/Draw/Mouse.png" />
           <span>鼠标</span>
+          <input type="radio" value="0" v-model="settings.pointerType">
           <ul class="desc">
             <li>按住左键绘画</li>
-            <li>单击右键选择</li>
+            <li>移动端触屏绘画</li>
           </ul>
         </div>
         <div class="patternDigitBoard">
           <img src="../../assets/Draw/DigitBoard.png" />
           数位板
+          <input type="radio" value="1" v-model="settings.pointerType">
           <ul class="desc">
             <li>笔尖触碰绘画</li>
             <li>单击空格选择</li>
@@ -45,15 +47,21 @@
 </template>
 <script lang="ts">
 import { defineComponent } from "vue";
+import {useGlobalSettings} from "@/store/store";
+import {storeToRefs} from "pinia";
+
 export default defineComponent({
   name: "ControlBar",
   emits: ["stateHandler"],
   setup(props, context) {
+    const {settings} = storeToRefs(useGlobalSettings())
     const changeState = function () {
       context.emit("stateHandler");
+      console.log(settings)
     };
     return {
       changeState,
+      settings
     };
   },
 });
@@ -118,6 +126,11 @@ export default defineComponent({
   font-size: 1.2rem;
   height: 100%;
 }
+.patternMouse:hover{
+  cursor: pointer;
+  background-color:rgba(255,255,255,.3)
+}
+
 .patternMouse .desc {
   margin-top: 15%;
 }
@@ -142,6 +155,10 @@ export default defineComponent({
   font-size: 1.2rem;
   width: 40%;
   height: 100%;
+}
+.patternDigitBoard:hover{
+  cursor: pointer;
+  background-color:rgba(255,255,255,.3)
 }
 .patternDigitBoard .desc {
   margin-top: 15%;

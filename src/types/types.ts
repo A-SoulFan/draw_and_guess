@@ -8,8 +8,13 @@ enum PlayerState {
   PLAYING_DRAWING,
   DISCONNECTED,
 }
-interface GlobalSetting {
-  Volume: number;
+interface GlobalSettings {
+  [key: string]: string|boolean|number,
+  iceSkating:boolean,
+  volume:number,
+  volumeSE:boolean,
+  muteAll:boolean,
+  pointerType:number
 }
 
 interface PlayerInfo {
@@ -68,4 +73,5 @@ export {
   RequestRawInfo,
   PlayerRawInfo,
   ChatInfo,
+  GlobalSettings
 };

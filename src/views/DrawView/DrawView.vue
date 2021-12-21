@@ -69,8 +69,8 @@ import {
   RequestRawInfo,
   RespondRawInfo,
 } from "../../types/types";
-import { usePlayerStateStore, useRoomInfoStore } from "../../store/store";
-import { getToken, makeRoomDetailInfo } from "../../utils/utils";
+import { usePlayerStateStore, useRoomInfoStore,useGlobalSettings } from "../../store/store";
+import { getToken, makeRoomDetailInfo,isMobileAccurately } from "../../utils/utils";
 
 export default defineComponent({
   name: "drawMain",
@@ -80,6 +80,7 @@ export default defineComponent({
     inRoom,
   },
   setup: function () {
+    let globalSettings =useGlobalSettings()
     let account=ref('')
     let password=ref('')
     let isSettingOpen = ref(false);
@@ -542,9 +543,10 @@ export default defineComponent({
         }
       }
     }
-    // onMounted(()=>{
+     onMounted(()=>{
     //   checkToken()
-    // })
+       globalSettings.initEnvironment(isMobileAccurately())
+     })
     return {
       websocketClient,
       intervalLoopId,

@@ -84,6 +84,23 @@ const getToken= function(cookie:string):string|null{
   }
 
 }
+
+function isMobileAccurately():boolean{
+  const userAgentInfo = navigator.userAgent;
+
+  const mobileAgents = [ "Android", "iPhone", "SymbianOS", "Windows Phone", "iPad","iPod"];
+
+  let mobile_flag = false;
+
+  for (let v = 0; v < mobileAgents.length; v++) {
+    if (userAgentInfo.indexOf(mobileAgents[v]) > 0) {
+      mobile_flag = true;
+      break;
+    }
+  }
+  return mobile_flag;
+}
+
 export {
   makeRoomBaseInfo,
   makeRoomDynamicState,
@@ -91,5 +108,6 @@ export {
   getUserString,
   makePlayerInfo,
   rgbToHex,
-  getToken
+  getToken,
+  isMobileAccurately
 };
