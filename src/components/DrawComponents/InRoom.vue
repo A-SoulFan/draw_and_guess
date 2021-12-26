@@ -12,7 +12,8 @@
 
     <div class="firstCol">
       <div class="wordLibName">
-        嘉然，我真的好喜欢你啊,为了你我要听猫中毒(100)
+        <p style="font-size:2.2rem;">房间号:{{playerStateStore.playerInRoom.roomBaseInfo.roomId}}</p>
+        <p>词库:{{playerStateStore.playerInRoom.roomDynamicState.wordLib}}</p>
       </div>
       <div class="chatBox" id="chatBox">
         <ul>
@@ -48,11 +49,23 @@
           <img class="headPicture" src="../../assets/Draw/diana.jpg" />
           <div class="playerName">{{ item.name }}</div>
           <div class="playerState">
-            <span v-if="item.ready === 'true'" class="playerReady">已准备</span>
+            <span v-if="item.ready === 'true'" class="playerReady" >已准备</span>
             <span v-else class="playerWaiting">未准备</span>
           </div>
         </li>
       </ul>
+      <div class="wordLibChooserInRoom"
+        v-if="isChoosingWordOpening===true"
+      >
+        <div class="nowWordLib">
+          当前词库:{{playerStateStore.playerInRoom.roomDynamicState.wordLib}}
+        </div>
+        <ul>
+          <li v-for="item in globalSettings.wordList" :key="item" @click="onWordChosen(item)">
+            {{item}}
+          </li>
+        </ul>
+      </div>
       <div class="readyButton">
         <button
           v-if="playerStateStore.playerState === PlayerState.INROOM_READY"
@@ -61,16 +74,22 @@
           取消准备
         </button>
         <button v-else @click="changeReadyState">准备</button>
+        <button class="changeWordLib" @click="changeChoosingWordState" v-if="playerStateStore.isRoomOwner()">更改词库</button>
+        <button class="gameStart"
+                @click="onStartGame"
+                v-if="playerStateStore.isRoomOwner()"
+                :disabled="!((playerStateStore.playerInRoom.roomDynamicState.users.length >1)&&(playerStateStore.isAllPlayerReady()===true))"
+        >开始游戏</button>
       </div>
     </div>
     <div class="roomInfoBoard">
       <div class="roomName">
         <img src="../../assets/Draw/username.png" />
-        <input type="text" v-model="roomNameInput" :disabled="playerStateStore.playerInfo.id!==playerStateStore.playerInRoom.roomBaseInfo.onwerId"/>
+        <input type="text" v-model="roomNameInput" disabled="true"/>
       </div>
       <div class="maxUser">
         <img src="../../assets/Draw/maxuser.png" />
-        <input type="text" v-model="maxUserInput" :disabled="playerStateStore.playerInfo.id!==playerStateStore.playerInRoom.roomBaseInfo.onwerId"/> /10
+        <input type="text" v-model="maxUserInput" disabled="true"/> /10
       </div>
       <div class="drawTime rowCenter">
         <img src="../../assets/Draw/round.png" />
@@ -109,6 +128,7 @@
           />仅能通过房间号搜索
         </div>
       </div>
+
       <button class="btnCreate" @click="updateBtnClick" :disabled="playerStateStore.playerInfo.id!==playerStateStore.playerInRoom.roomBaseInfo.onwerId">修改</button>
     </div>
 
@@ -118,19 +138,21 @@
 
 <script lang="ts">
 import { defineComponent, ref, onMounted, watch } from "vue";
-import { usePlayerStateStore } from "../../store/store";
+import { usePlayerStateStore,useGlobalSettings } from "../../store/store";
 import { PlayerState, RequestRawInfo } from "../../types/types";
 import drawBox from "./DrawBox.vue";
 import { storeToRefs } from "pinia";
 
 export default defineComponent({
   name: "inRoom",
-  emits: ["onReadyChange", "onExitRoom", "onPathDrawn", "onSubmitGuess","onChangeRoomInfo"],
+  emits: ["onReadyChange", "onExitRoom", "onPathDrawn", "onSubmitGuess","onChangeRoomInfo","onChangeWordLib","onStartGame"],
   components: {
     drawBox,
   },
   setup(props, context) {
+    const globalSettings = useGlobalSettings()
     const playerStateStore = usePlayerStateStore();
+    let isChoosingWordOpening = ref(false);
     let { playerInRoomChatArray,playerInRoom } = storeToRefs(usePlayerStateStore());
     let roomNameInput = ref(playerInRoom.value.roomBaseInfo.roomName);
     let maxUserInput = ref(playerInRoom.value.roomBaseInfo.maxUsers);
@@ -163,6 +185,17 @@ export default defineComponent({
       }
       context.emit("onSubmitGuess", setGuessInput.value);
     };
+    const changeChoosingWordState = function(){
+      if(isChoosingWordOpening.value){
+        isChoosingWordOpening.value=false;
+      }else{
+        isChoosingWordOpening.value=true;
+      }
+    }
+    const onWordChosen = function(word:string){
+      isChoosingWordOpening.value=false;
+      context.emit("onChangeWordLib", word)
+    }
     const changeReadyState = function () {
       if (playerStateStore.playerState === PlayerState.INROOM_READY) {
         playerStateStore.changePlayerState(PlayerState.INROOM_WAITING);
@@ -172,6 +205,9 @@ export default defineComponent({
         context.emit("onReadyChange");
       }
     };
+    const onStartGame = function(){
+      context.emit("onStartGame");
+    }
     const onExitRoom = function () {
       context.emit("onExitRoom");
       playerStateStore.changePlayerState(PlayerState.HANGING);
@@ -203,13 +239,18 @@ export default defineComponent({
       roundInput,
       maxUserInput,
       roomNameInput,
-      updateBtnClick
+      updateBtnClick,
+      globalSettings,
+      isChoosingWordOpening,
+      changeChoosingWordState,
+      onWordChosen,
+      onStartGame
     };
   },
 });
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
 .roomMain {
   background-color: rgb(230, 230, 230);
   display: flex;
@@ -239,7 +280,7 @@ export default defineComponent({
   font-size: 2.4em;
   font-weight: 600;
   color: black;
-  margin-top: 17%;
+  margin-top: 10%;
   flex: 0 0 20%;
 }
 .chatBox {
@@ -288,6 +329,7 @@ export default defineComponent({
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+  position: relative;
 }
 .headPicture {
   border: 3px solid black;
@@ -470,5 +512,32 @@ export default defineComponent({
 .rowCenter {
   display: flex;
   align-items: center;
+}
+.wordLibChooserInRoom{
+  position: absolute;
+  border-radius: 8px;
+  border: 3px solid black;
+  background-color: rgb(230, 230, 230);
+  left:20%;
+  top:40%;
+  right:20%;
+  bottom:20%;
+  li{
+    font-size:1.4rem;
+    margin-top:2%;
+    margin-left:15%;
+    width: 70%;
+  }
+  li:hover{
+    cursor: pointer;
+    background-color: rgb(9, 9, 9, 0.3);
+  }
+  .nowWordLib{
+    margin-left: 5%;
+    margin-top:2%;
+    padding-bottom:2%;
+    width:90%;
+    border-bottom: 3px solid black;
+  }
 }
 </style>

@@ -6,6 +6,7 @@ enum PlayerState {
   INROOM_READY,
   PLAYING_ANSWERING,
   PLAYING_DRAWING,
+  PLAYING_WAITING,
   DISCONNECTED,
 }
 interface GlobalSettings {

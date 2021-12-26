@@ -6,6 +6,11 @@
       @change-state="changeCreateRoomState"
       @on-create-btn-clicked="onCreateBtnClicked"
     ></createRoom>
+    <WordLibChooser
+        v-if="isWordLibChoosing === true"
+        class="wordLibChooserStyle"
+        @on-close-clicked="changeWordChooserState"
+    ></WordLibChooser>
     <div class="roomList">
       <ul>
         <li
@@ -41,7 +46,11 @@
       >
         创建房间
       </button>
-      <button class="wordLib">题库</button>
+      <button
+        class="wordLib"
+        @click="changeWordChooserState"
+        :class="{ btnActive: isWordLibChoosing }"
+      >题库</button>
     </div>
   </div>
 </template>
@@ -56,16 +65,18 @@ import {
 import { useRoomInfoStore } from "../../store/store";
 import createRoom from "../../components/DrawComponents/CreateRoom.vue";
 import { getUserString } from "../../utils/utils";
+import WordLibChooser from "@/components/DrawComponents/WordLibChooser.vue";
 
 export default defineComponent({
   name: "RoomList",
   emits: ["onCreateRoom", "onEnterRoom"],
   components: {
-    createRoom,
+    createRoom,WordLibChooser
   },
   setup(props, context) {
     let roomSearchId = "";
     let isCreatingRoom = ref(false);
+    let isWordLibChoosing = ref(false);
     const roomInfoStore = useRoomInfoStore();
     const changeCreateRoomState = function () {
       if (isCreatingRoom.value) {
@@ -74,6 +85,13 @@ export default defineComponent({
         isCreatingRoom.value = true;
       }
     };
+    const changeWordChooserState = function () {
+      if (isWordLibChoosing.value) {
+        isWordLibChoosing.value = false;
+      } else {
+        isWordLibChoosing.value = true;
+      }
+    }
     const onCreateBtnClicked = function (e: RequestRawInfo) {
       context.emit("onCreateRoom", e);
       changeCreateRoomState();
@@ -89,6 +107,8 @@ export default defineComponent({
       onCreateBtnClicked,
       getUserString,
       onEnterRoomClicked,
+      isWordLibChoosing,
+      changeWordChooserState,
     };
   },
 });
@@ -158,6 +178,7 @@ export default defineComponent({
   border-radius: 8px;
 }
 .makeNewRoom:hover {
+  cursor: pointer;
   background-color: rgba(92, 92, 92, 0.5);
 }
 .makeNewRoom:active {
@@ -172,6 +193,13 @@ export default defineComponent({
   min-height: 30px;
   border: 3px solid black;
   border-radius: 8px;
+}
+.wordLib:hover {
+  cursor: pointer;
+  background-color: rgba(92, 92, 92, 0.5);
+}
+.wordLib:active {
+  background-color: rgba(92, 92, 92, 0.7);
 }
 .roomList ul {
   margin-top: 10%;
@@ -196,5 +224,14 @@ export default defineComponent({
 }
 .btnActive {
   background-color: rgb(92, 92, 92, 0.7);
+}
+.wordLibChooserStyle{
+
+  position: absolute;
+  left: 10%;
+  right: 10%;
+  top: 0;
+  bottom: 22%;
+  overflow: hidden;
 }
 </style>

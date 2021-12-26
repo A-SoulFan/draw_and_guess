@@ -25,8 +25,26 @@ const usePlayerStateStore = defineStore({
   }),
   getters: {
     getState: (state) => state.playerState,
+    getPlayerNameById: (state) =>{
+      return (id:string)=>{
+        return (state.playerInRoom.roomDynamicState.users.find(v=>{console.log(v);return v.id===id}))
+      }
+
+    }
   },
   actions: {
+    setRoundCountDown(){
+      if(this.timerId){
+        clearInterval((this.timerId))
+      }
+      this.timer=10
+      this.timerId=setInterval(()=>{
+        this.decTimer()
+        if(this.timer===0){
+          clearInterval(this.timerId)
+        }
+      },1000)
+    },
     clearTimer() {
       if(this.timerId){
         clearInterval((this.timerId))
@@ -69,6 +87,7 @@ const usePlayerStateStore = defineStore({
       this.playerInRoom.roomDynamicState.users.forEach(v=>{
         v.ready=false;
       })
+      this.playerInRoomChatArray=<Array<ChatInfo>>[]
     },
     onInRoomPlayerStateChanged(user_info: PlayerInfo) {
       console.log(user_info)
@@ -84,10 +103,14 @@ const usePlayerStateStore = defineStore({
       if (this.playerInRoom.roomDynamicState.users.length === 0) {
         return false;
       } else {
-        return this.playerInRoom.roomDynamicState.users.reduce(
-          (pre: boolean, cur) => pre && cur.ready,
+        const p= this.playerInRoom.roomDynamicState.users.reduce(
+
+          (pre: boolean, cur) =>{return (pre && (`${cur.ready}`==='true'))},
           true
         );
+        console.log(this.playerInRoom.roomDynamicState.users.length)
+        console.log(p)
+        return p;
       }
     },
     isRoomOwner(): boolean {
@@ -117,7 +140,7 @@ const useRoomInfoStore = defineStore({
   getters: {
     getRoomById: (state) => {
       return (id: string) =>
-        state.roomList.find((e) => e.roomBaseInfo.roomId === id);
+          (state.roomList.find((e) => e.roomBaseInfo.roomId === id));
     },
   },
   actions: {
@@ -139,8 +162,10 @@ const useGlobalSettings = defineStore({
     },
     environment:{
       isMobile:false
-    }
-
+    },
+    iceList:[],
+    wordList:<Array<string>>[],
+    localWordList:<Array<string>>[],
   }),
   actions:{
     changeGlobalSettings(newSettings:GlobalSettings){
@@ -152,6 +177,39 @@ const useGlobalSettings = defineStore({
     },
     initEnvironment(isMobile:boolean){
       this.environment.isMobile = isMobile
+    },
+    initWordList(words:Array<string>){
+      this.wordList=words??[]
+      this.wordList=this.wordList.filter(v=>{
+        return !this.localWordList.includes(v)
+      })
+
+    },
+    initLocalWordList(words:Array<string>){
+      this.localWordList=words??[]
+    },
+    appendLocalWordLib(word:string){
+      this.localWordList=[...this.localWordList,word]
+      window.localStorage.setItem("localWordList",JSON.stringify(this.localWordList))
+    },
+    deleteLocalWordLib(word:string){
+      this.localWordList=this.localWordList.filter((v:string)=>{
+        return v!==word
+      })
+      window.localStorage.setItem("localWordList",JSON.stringify(this.localWordList))
+
+    },
+    appendWordLib(word:string){
+      this.wordList=[...this.wordList,word]
+    },
+    deleteWordLib(word:string){
+      this.wordList=this.wordList.filter((v:string)=>{
+        return v!==word
+      })
+
+    },
+    updateWordLib(word:string){
+      this.wordList=[...this.wordList.filter(v=>v!==word),word]
     }
   }
 

@@ -9,6 +9,7 @@
     "lint-fix": "vue-cli-service lint --fix --ext .js,.vue src/"
   },
   "dependencies": {
+    "animate.css": "^4.1.1",
     "core-js": "^3.6.5",
     "pinia": "^2.0.6",
     "reset-css": "^5.0.1",

@@ -17,6 +17,8 @@ room visibility 搜索 * 猜的格式可能要变 * 猜的正确性还没表达�
       @on-path-drawn="onPathDrawn"
       @on-submit-guess="onSubmitGuess"
       @on-change-room-info="onChangeRoomInfo"
+      @on-change-word-lib="onChangeWordLib"
+      @on-start-game="onStartGame"
     ></in-room>
     <div class="leftBar">
       <component
@@ -56,21 +58,22 @@ room visibility 搜索 * 猜的格式可能要变 * 猜的正确性还没表达�
     </div>
 
   </div>
+  <div class="iceSkatingBox">
+    <ice v-show="isIceShowing===true"></ice>
+    <img src="../../assets/Draw/IceSkating.png" @click="onIceSkatingOpen">
+  </div>
 </template>
 
 <script lang="ts">
-import { defineComponent, onMounted, ref } from "vue";
+import {defineComponent, onMounted, ref} from "vue";
 import controlBar from "../../components/DrawComponents/ControlBar.vue";
 import roomList from "../../components/DrawComponents/RoomList.vue";
 import inRoom from "../../components/DrawComponents/InRoom.vue";
-import {
-  PlayerInfo,
-  PlayerState,
-  RequestRawInfo,
-  RespondRawInfo,
-} from "../../types/types";
-import { usePlayerStateStore, useRoomInfoStore,useGlobalSettings } from "../../store/store";
-import { getToken, makeRoomDetailInfo,isMobileAccurately } from "../../utils/utils";
+import {PlayerInfo, PlayerState, RequestRawInfo, RespondRawInfo,} from "../../types/types";
+import {useGlobalSettings, usePlayerStateStore, useRoomInfoStore} from "../../store/store";
+import {getToken, isMobileAccurately, makeRoomDetailInfo} from "../../utils/utils";
+import ice from "../../components/DrawComponents/Ice.vue"
+
 
 export default defineComponent({
   name: "drawMain",
@@ -78,17 +81,20 @@ export default defineComponent({
     controlBar,
     roomList,
     inRoom,
+    ice
   },
   setup: function () {
     let globalSettings =useGlobalSettings()
     let account=ref('')
     let password=ref('')
+    let isIceShowing=ref(false)
     let isSettingOpen = ref(false);
     let intervalLoopId = null;
     let leftCurrentView = "controlBar";
     let rightCurrentView = "roomList";
     let websocketClient = null as any;
     let counter=0;
+
     const playerStateStore = usePlayerStateStore();
     const roomInfoStore = useRoomInfoStore();
     const changeSettingConpShowState = () => {
@@ -141,19 +147,17 @@ export default defineComponent({
           alert('十秒钟最多验证一次！')
       }
     }
+    const onStartGame = function(){
+      websocketClient.send(
+          JSON.stringify({
+            api: "startgame",
+            param: {
+              nil: "nil",
+            },
+          })
+      );
+    }
     const onChangeRoomInfo= function(e:RequestRawInfo){
-      console.log(playerStateStore.playerInRoom.roomDynamicState)
-      console.log(JSON.stringify({
-        api: "updateRoom",
-        param: {
-          room_name: e.room_name,
-          round: `${e.round}`,
-          draw_time: `${e.draw_time}`,
-          max_users: `${e.max_users}`,
-          visible:`${e.privacy}`,
-          word_library:`${e.word_lib}`
-        },
-      }))
       websocketClient.send(
         JSON.stringify({
           api: "updateRoom",
@@ -219,7 +223,23 @@ export default defineComponent({
         })
       );
     };
-
+    const onChangeWordLib = function(e:string){
+      websocketClient.send(
+          JSON.stringify({
+            api: "choosewordlib",
+            param: {
+              lib_name: e,
+            },
+          })
+      );
+    }
+    const onIceSkatingOpen = ()=>{
+      if(isIceShowing.value){
+        isIceShowing.value=false;
+      }else{
+        isIceShowing.value=true;
+      }
+    }
     //private:
     const websocketOnMessage= (evt:any) => {
       console.log(evt.data)
@@ -254,6 +274,10 @@ export default defineComponent({
                   })
               );
             }
+            websocketClient.send(`{
+                  "api": "getallwordlib",
+                  "param": {}
+              }`)
           })();
           break;
           //获取房间||系统主动更新房间
@@ -389,29 +413,6 @@ export default defineComponent({
             if (roomInfo) {
               console.log(roomInfo)
               playerStateStore.onInRoomPlayerStateChanged(roomInfo);
-              if (
-                  playerStateStore.isAllPlayerReady() &&
-                  playerStateStore.isRoomOwner() &&
-                  playerStateStore.playerInRoom.roomDynamicState.users.length >
-                  1
-              ) {
-                websocketClient.send(
-                    JSON.stringify({
-                      api: "choosewordlib",
-                      param: {
-                        lib_name: "abc",
-                      },
-                    })
-                );
-                websocketClient.send(
-                    JSON.stringify({
-                      api: "startgame",
-                      param: {
-                        nil: "nil",
-                      },
-                    })
-                );
-              }
             }
           })();
           break;
@@ -419,6 +420,9 @@ export default defineComponent({
           (function () {
             let data = datas.data;
             if (Object.hasOwnProperty.call(data,"answer")) {
+              if(playerStateStore.playerState === PlayerState.PLAYING_DRAWING){
+                playerStateStore.changePlayerState(PlayerState.PLAYING_ANSWERING);
+              }
               playerStateStore.appendChat({
                     playerName: "广播工具人",
                     text: `正确答案是 ${data.answer}!`
@@ -430,6 +434,7 @@ export default defineComponent({
                     text: v.guess_word==='nil'?"什么也没猜":`猜了${v.guess_word}`
                   }))
               );
+              playerStateStore.setRoundCountDown()
             } else if (data.type === "game_over") {
               playerStateStore.changePlayerState(PlayerState.INROOM_WAITING);
               playerStateStore.onGameOver()
@@ -437,17 +442,11 @@ export default defineComponent({
               if (data.type === "current_drawer") {
                 playerStateStore.appendChat({
                   playerName: "广播工具人",
-                  text: `接下来由:${data.info}来画`,
+                  text: `接下来由:${(playerStateStore.playerInRoom.roomDynamicState.users.find(v=>data.info===v.id) as PlayerInfo).name}来画`,
                 });
                 if (data.info === playerStateStore.playerInfo.id) {
                   playerStateStore.changePlayerState(
                       PlayerState.PLAYING_DRAWING
-                  );
-                } else if (
-                    playerStateStore.playerState === PlayerState.PLAYING_DRAWING
-                ) {
-                  playerStateStore.changePlayerState(
-                      PlayerState.PLAYING_ANSWERING
                   );
                 } else if (
                     playerStateStore.playerState === PlayerState.INROOM_READY
@@ -469,14 +468,13 @@ export default defineComponent({
                   });
                   if(parseInt(data.info)===1){
                     playerStateStore.setTimer(playerStateStore.playerInRoom.roomDynamicState.drawTime)
-                    console.log(playerStateStore.playerInRoom.roomDynamicState.drawTime)
                   }
                 })();
               }
             }
           })();
           break;
-        case "choose_word_library":
+        case "chooseWordLib":
           playerStateStore.changeWordLib(datas.data.library_name);
           break;
         case "transfer":
@@ -502,6 +500,12 @@ export default defineComponent({
 
           })();
           break;
+        case "GetAllWordLib":
+          (function(){
+            let data = datas.data.library_name;
+            globalSettings.initWordList(data)
+          })()
+          break;
         default:
           if(datas.error===25){
             alert("人数不足！")
@@ -513,12 +517,18 @@ export default defineComponent({
 
           }else if(datas.error===-1){
             alert('登录验证失败！请登录后重试。')
+          }else if(datas.error===1){
+            alert('请选择词库！')
           }else{
             throw new Error(JSON.stringify(datas));
           }
 
       }
     };
+    const websocketOnClose = (evt:any) =>{
+      alert("连接已关闭，请重新登陆");
+      playerStateStore.changePlayerState(PlayerState.PENDING)
+    }
     const createWebsocket = function(){
       websocketClient=new WebSocket("ws://localhost:1001");
       //websocketClient=new WebSocket("ws://localhost:1001");
@@ -527,8 +537,10 @@ export default defineComponent({
         if(token){
           websocketClient.send(`asoulFanToken=${token}`);
         }
+
       };
       websocketClient.onmessage = websocketOnMessage
+      websocketClient.onclose= websocketOnClose
     }
     const checkToken = function(){
       let token=getToken(document.cookie)
@@ -546,6 +558,7 @@ export default defineComponent({
      onMounted(()=>{
     //   checkToken()
        globalSettings.initEnvironment(isMobileAccurately())
+       globalSettings.initLocalWordList(JSON.parse(window.localStorage.getItem("localWordList") as string));
      })
     return {
       websocketClient,
@@ -566,13 +579,17 @@ export default defineComponent({
       onChangeRoomInfo,
       login,
       account,
-      password
+      password,
+      onChangeWordLib,
+      onStartGame,
+      isIceShowing,
+      onIceSkatingOpen
     };
   },
 });
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
 .mainPage {
   border: 3px solid black;
   border-radius: 8px;
@@ -723,5 +740,18 @@ export default defineComponent({
   align-self:center;
   flex:0 0 10%;
   font-size:2rem;
+}
+.iceSkatingBox{
+  position:absolute;
+  z-index:99999;
+  left:30px;
+  bottom:30px;
+  width:30%;
+  img{
+    width:100%;
+  }
+}
+.iceSkatingBox:hover{
+  cursor: pointer;
 }
 </style>

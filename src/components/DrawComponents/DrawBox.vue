@@ -37,7 +37,7 @@
     </div>
     <button class="delBtn"
             @click="onDelbtnClick"
-            :disabled="playerStateStore.playerInfo.id!==playerStateStore.playerInRoom.roomBaseInfo.onwerId"
+            :disabled="playerStateStore.playerState!==PlayerState.PLAYING_DRAWING"
     >清空</button>
   </div>
 </template>
@@ -287,7 +287,7 @@ export default defineComponent({
 
     const onPointerDown =  (e: any)=>{
       e.preventDefault()
-      if ((playerState.value !== PlayerState.PLAYING_DRAWING)&&(!globalSettings.environment.isMobile)) {
+      if ((playerState.value !== PlayerState.PLAYING_DRAWING)) {
         return;
       }
       if(lstX===-1&&lstY===-1){
@@ -320,7 +320,7 @@ export default defineComponent({
     };
     const onPointerMove = (e: any)=>{
       e.preventDefault()
-      if ((playerState.value !== PlayerState.PLAYING_DRAWING)&&(!globalSettings.environment.isMobile)) {
+      if ((playerState.value !== PlayerState.PLAYING_DRAWING)) {
         return;
       }
       if(lstX===-1&&lstY===-1){
@@ -338,7 +338,7 @@ export default defineComponent({
     };
     const onPointerUp = (e: any)=>{
       e.preventDefault()
-      if ((playerState.value !== PlayerState.PLAYING_DRAWING)&&(!globalSettings.environment.isMobile)) {
+      if ((playerState.value !== PlayerState.PLAYING_DRAWING)) {
         return;
       }
       mouseTrace.push([lstX/canvasWidth,lstY/canvasHeight,e.offsetX/canvasWidth, e.offsetY/canvasHeight,e.pressure]);
@@ -353,7 +353,7 @@ export default defineComponent({
       context.emit("drawOnePath", mouseTrace);
     };
     onMounted(() => {
-      console.log(globalSettings.environment.isMobile)
+      console.log(globalSettings.environment.isMobile,'11111')
       colorDisplayer = (document.getElementById('colorDisplayer') as HTMLCanvasElement).getContext("2d");
       canvas = document.getElementById("drawCanvasBoard");
       colorChooser=(document.getElementById("colorChooser") as HTMLCanvasElement).getContext("2d");
@@ -375,7 +375,7 @@ export default defineComponent({
           +(tempRef.parentElement as HTMLElement).offsetLeft
           +((tempRef.parentElement as HTMLElement).parentElement as HTMLElement).offsetLeft
       watch(timer,(now,pre)=>{
-        if(now>pre){
+        if(now===playerStateStore.playerInRoom.roomDynamicState.drawTime){
           canvasContext.clearRect(0,0,canvas.width,canvas.height);
         }
       })
@@ -432,7 +432,8 @@ export default defineComponent({
       onPointerMove,
       onPointerUp,
       lstX,
-      lstY
+      lstY,
+      PlayerState
     };
   },
 });
